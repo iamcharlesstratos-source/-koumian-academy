@@ -1,22 +1,13 @@
 # Netlify configuration for Koumian Academy
-# Docs: https://docs.netlify.com/configure-builds/file-based-configuration/
 
 [build]
-  # Generate Prisma client, then build Next.js.
-  # Database tables are created/updated manually via `npx prisma db push`
-  # against your Neon DATABASE_URL — see the deployment guide.
-  command  = "  command  = "npx prisma generate && npx prisma db push --accept-data-loss && npm run build"
+  command  = "npx prisma generate && npx prisma db push --accept-data-loss && npm run build"
   publish  = ".next"
 
 [build.environment]
-  # Tell Auth.js v5 to trust the deploy host (Netlify URL).
-  # Without this, sign-in fails on the deployed site.
   AUTH_TRUST_HOST = "true"
-  # Skip Husky / other dev-only post-install steps in CI.
   HUSKY = "0"
   NODE_VERSION = "20"
 
-# The official Next.js plugin handles routing, edge functions,
-# image optimization, and middleware for App Router projects.
 [[plugins]]
   package = "@netlify/plugin-nextjs"
