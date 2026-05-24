@@ -5,7 +5,7 @@
   # Generate Prisma client, then build Next.js.
   # Database tables are created/updated manually via `npx prisma db push`
   # against your Neon DATABASE_URL — see the deployment guide.
-  command  = "npx prisma generate && npm run build"
+  command  = "  command  = "npx prisma generate && npx prisma db push --accept-data-loss && npm run build"
   publish  = ".next"
 
 [build.environment]
