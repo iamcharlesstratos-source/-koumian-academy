@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E9D5FF"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5F5F7"/>
+      <stop offset="1" stop-color="#D8B4FE"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer circuit ring -->
+  <circle cx="60" cy="60" r="55" stroke="url(#ring)" stroke-width="1" stroke-dasharray="1.5 3" opacity="0.4"/>
+
+  <!-- Philosopher head profile (facing right) -->
+  <g fill="url(#head)">
+    <!-- Main head + beard silhouette as one continuous shape -->
+    <path d="
+      M 48 32
+      Q 55 22, 68 22
+      Q 80 22, 86 32
+      Q 92 42, 90 54
+      L 88 60
+      Q 88 64, 86 66
+      L 84 69
+      Q 84 72, 82 73
+      L 80 75
+      L 78 77
+      L 76 79
+      L 74 81
+      Q 73 85, 71 88
+      L 68 96
+      L 66 102
+      Q 65 106, 63 106
+      L 60 105
+      Q 58 104, 56 100
+      L 54 92
+      L 52 84
+      L 50 78
+      Q 47 75, 46 70
+      Q 43 65, 43 58
+      Q 42 50, 44 42
+      Q 45 36, 48 32 Z" />
+
+    <!-- Curly hair wisps at the back -->
+    <circle cx="42" cy="38" r="3.5" opacity="0.85"/>
+    <circle cx="44" cy="46" r="3" opacity="0.85"/>
+    <circle cx="42" cy="54" r="2.8" opacity="0.85"/>
+
+    <!-- Top curly hair tuft -->
+    <circle cx="56" cy="22" r="4" opacity="0.9"/>
+    <circle cx="63" cy="20" r="4.5" opacity="0.95"/>
+    <circle cx="71" cy="22" r="4" opacity="0.9"/>
+    <circle cx="78" cy="26" r="3.5" opacity="0.85"/>
+  </g>
+
+  <!-- Eye -->
+  <circle cx="80" cy="48" r="1.6" fill="#4B0E4E"/>
+
+  <!-- Brow line accent -->
+  <path d="M 76 43 Q 80 41, 84 43" stroke="#4B0E4E" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Circuit nodes & lines emanating from the beard -->
+  <g>
+    <line x1="58" y1="95" x2="38" y2="100" stroke="#7C3AED" stroke-width="0.7" opacity="0.7"/>
+    <line x1="56" y1="88" x2="32" y2="88" stroke="#7C3AED" stroke-width="0.7" opacity="0.7"/>
+    <line x1="54" y1="82" x2="28" y2="76" stroke="#7C3AED" stroke-width="0.7" opacity="0.7"/>
+    <line x1="64" y1="100" x2="46" y2="108" stroke="#7C3AED" stroke-width="0.7" opacity="0.6"/>
+  </g>
+
+  <!-- Circuit dots -->
+  <g fill="#7C3AED">
+    <circle cx="38" cy="100" r="2"/>
+    <circle cx="32" cy="88" r="1.8"/>
+    <circle cx="28" cy="76" r="1.5"/>
+    <circle cx="46" cy="108" r="1.6"/>
+  </g>
+  <g fill="#E9D5FF">
+    <circle cx="38" cy="100" r="0.7"/>
+    <circle cx="32" cy="88" r="0.6"/>
+    <circle cx="22" cy="68" r="1.2"/>
+    <circle cx="40" cy="110" r="0.9"/>
+  </g>
+
+  <!-- Subtle violet glow node near the head -->
+  <circle cx="92" cy="42" r="1.5" fill="#E9D5FF" opacity="0.8"/>
+  <circle cx="92" cy="42" r="0.7" fill="#7C3AED"/>
+</svg>

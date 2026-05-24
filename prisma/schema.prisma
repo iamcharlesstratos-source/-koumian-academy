@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  username      String?   @unique
+  passwordHash  String?
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("user")
+  status        String    @default("pending")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  enrollments Enrollment[]
+  completions LessonCompletion[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  category    String
+  level       String
+  durationMin Int
+  priceCents  Int
+  published   Boolean  @default(true)
+  trailerUrl  String?  // Optional course-level intro/promo video URL
+  trailerType String?  // Provider hint: youtube | vimeo | googleDrive | loom | facebook | tiktok | mp4 | auto
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lessons     Lesson[]
+  enrollments Enrollment[]
+}
+
+model Lesson {
+  id        String  @id @default(cuid())
+  courseId  String
+  title     String
+  body      String  // legacy markdown fallback
+  videoUrl  String?
+  order     Int
+
+  // Rich editor fields (JSON-encoded strings since SQLite has no Json type)
+  sections             String?  // JSON: [{ title, body }]
+  takeaways            String?  // JSON: string[]
+  proTip               String?
+  videoDuration        String?  // e.g. "14:50"
+  videoType            String?  // "youtube" | "vimeo" | "googleDrive" | "loom" | "mp4" | "auto"
+  assignmentEnabled    Boolean  @default(false)
+  assignmentTitle      String?
+  assignmentDescription String?
+  assignmentFileTypes  String?  // JSON: string[] (e.g. ["images","videos","pdfs"])
+  published            Boolean  @default(true)
+
+  course      Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  completions LessonCompletion[]
+
+  @@unique([courseId, order])
+  @@index([courseId])
+}
+
+model LessonCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  grantedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
