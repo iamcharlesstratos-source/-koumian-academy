@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env*.local
+.netlify/
+prisma/*.db
+prisma/*.db-journal
+prisma/migrations/dev/
+*.log
+.DS_Store
+.vscode/
+.idea/
+next-env.d.ts
