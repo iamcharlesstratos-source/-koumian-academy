@@ -9,5 +9,13 @@
   HUSKY = "0"
   NODE_VERSION = "20"
 
+# Include Prisma binaries in serverless functions — without this,
+# Prisma client can't connect to Postgres at runtime.
+[functions]
+  included_files = [
+    "node_modules/.prisma/client/**",
+    "node_modules/@prisma/client/**"
+  ]
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
