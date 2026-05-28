@@ -4,7 +4,9 @@ import "./globals.css";
 import {
   ThemeProvider,
   themeBootstrapScript,
-} from "@/components/public/ThemeProvider";
+} from "@/components/public/ThemeProvider";// Cloudflare Pages requires every non-static route to run on the edge runtime.
+// Declaring it here on the root layout propagates to all nested routes.
+export const runtime = "edge";
 
 const poppins = Poppins({
   subsets: ["latin"],
