@@ -1,0 +1,12 @@
+# Cloudflare Pages configuration for Koumian Academy.
+# Read by `wrangler` CLI and Cloudflare's build system.
+
+name = "koumian-academy"
+compatibility_date = "2026-05-28"
+
+# Required for Node.js polyfills (bcryptjs, etc.) and to enable the global
+# Node primitives that Next.js / Auth.js / Prisma rely on at runtime.
+compatibility_flags = ["nodejs_compat"]
+
+# Where the Cloudflare adapter writes the built site.
+pages_build_output_dir = ".vercel/output/static"

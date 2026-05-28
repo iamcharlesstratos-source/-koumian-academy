@@ -605,7 +605,7 @@ function LessonFormPanel({
       </div>
 
       {error && (
-        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-200">
           {error}
         </div>
       )}
@@ -929,7 +929,7 @@ function SectionEditor({
         </div>
         <button
           onClick={onRemove}
-          className="rounded-lg border border-theme-strong bg-current/[0.02] p-1.5 text-muted transition-colors hover:bg-rose-500/15 hover:text-rose-200"
+          className="rounded-lg border border-theme-strong bg-current/[0.02] p-1.5 text-muted transition-colors hover:bg-rose-500/15 hover:text-rose-700 dark:hover:text-rose-200"
           title="Remove section"
         >
           <X className="h-3.5 w-3.5" />
@@ -990,13 +990,13 @@ function VideoPreview({
       <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.05] p-3">
         <div className="flex items-start gap-3 px-3 py-2">
           <span className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/15">
-            <PlayCircle className="h-4 w-4 text-amber-300" />
+            <PlayCircle className="h-4 w-4 text-amber-600 dark:text-amber-300" />
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-amber-200">
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-200">
               Couldn&apos;t auto-detect provider
             </p>
-            <p className="mt-1 text-[11px] text-amber-200/80">
+            <p className="mt-1 text-[11px] text-amber-700/80 dark:text-amber-200/80">
               Pick the right Type in the dropdown, or paste a supported URL
               (YouTube, Vimeo, Google Drive, Loom, Facebook, TikTok, or direct
               .mp4).

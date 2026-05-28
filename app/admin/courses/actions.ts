@@ -19,9 +19,28 @@ type CourseInput = {
   trailerType?: string | null;
 };
 
+// Reasonable upper bounds so a misbehaving client can't insert massive blobs.
+const COURSE_TITLE_MAX = 200;
+const COURSE_DESC_MAX = 2000;
+const COURSE_URL_MAX = 2048;
+const LESSON_TITLE_MAX = 200;
+const LESSON_BODY_MAX = 100_000;
+const LESSON_PROTIP_MAX = 2000;
+const LESSON_SECTION_TITLE_MAX = 200;
+const LESSON_SECTION_BODY_MAX = 50_000;
+const LESSON_TAKEAWAY_MAX = 500;
+const ASSIGNMENT_TITLE_MAX = 200;
+const ASSIGNMENT_DESC_MAX = 10_000;
+
 function validateCourse(input: CourseInput) {
   if (!input.title.trim()) throw new Error("Title is required");
+  if (input.title.length > COURSE_TITLE_MAX) {
+    throw new Error(`Title must be ${COURSE_TITLE_MAX} characters or fewer`);
+  }
   if (!input.description.trim()) throw new Error("Description is required");
+  if (input.description.length > COURSE_DESC_MAX) {
+    throw new Error(`Description must be ${COURSE_DESC_MAX} characters or fewer`);
+  }
   if (!(CATEGORIES as readonly string[]).includes(input.category)) {
     throw new Error("Invalid category");
   }
@@ -30,6 +49,61 @@ function validateCourse(input: CourseInput) {
   }
   if (input.durationMin < 0) throw new Error("Duration must be positive");
   if (input.priceCents < 0) throw new Error("Price must be positive");
+  if (input.trailerUrl && input.trailerUrl.length > COURSE_URL_MAX) {
+    throw new Error(`Video URL must be ${COURSE_URL_MAX} characters or fewer`);
+  }
+}
+
+function validateLesson(input: LessonInput) {
+  if (!input.title.trim()) throw new Error("Lesson title is required");
+  if (input.title.length > LESSON_TITLE_MAX) {
+    throw new Error(`Lesson title must be ${LESSON_TITLE_MAX} characters or fewer`);
+  }
+  if (input.body && input.body.length > LESSON_BODY_MAX) {
+    throw new Error(`Lesson body must be ${LESSON_BODY_MAX} characters or fewer`);
+  }
+  if (input.proTip && input.proTip.length > LESSON_PROTIP_MAX) {
+    throw new Error(`Pro tip must be ${LESSON_PROTIP_MAX} characters or fewer`);
+  }
+  if (input.videoUrl && input.videoUrl.length > COURSE_URL_MAX) {
+    throw new Error(`Video URL must be ${COURSE_URL_MAX} characters or fewer`);
+  }
+  if (input.sections) {
+    for (const s of input.sections) {
+      if (s.title.length > LESSON_SECTION_TITLE_MAX) {
+        throw new Error(
+          `Section title must be ${LESSON_SECTION_TITLE_MAX} characters or fewer`
+        );
+      }
+      if (s.body.length > LESSON_SECTION_BODY_MAX) {
+        throw new Error(
+          `Section body must be ${LESSON_SECTION_BODY_MAX} characters or fewer`
+        );
+      }
+    }
+  }
+  if (input.takeaways) {
+    for (const t of input.takeaways) {
+      if (t.length > LESSON_TAKEAWAY_MAX) {
+        throw new Error(
+          `Takeaway must be ${LESSON_TAKEAWAY_MAX} characters or fewer`
+        );
+      }
+    }
+  }
+  if (input.assignmentTitle && input.assignmentTitle.length > ASSIGNMENT_TITLE_MAX) {
+    throw new Error(
+      `Assignment title must be ${ASSIGNMENT_TITLE_MAX} characters or fewer`
+    );
+  }
+  if (
+    input.assignmentDescription &&
+    input.assignmentDescription.length > ASSIGNMENT_DESC_MAX
+  ) {
+    throw new Error(
+      `Assignment description must be ${ASSIGNMENT_DESC_MAX} characters or fewer`
+    );
+  }
 }
 
 async function uniqueSlug(base: string, ignoreId?: string): Promise<string> {
@@ -159,7 +233,7 @@ function packLessonData(input: LessonInput) {
 
 export async function createLesson(courseId: string, input: LessonInput) {
   await requireAdmin();
-  if (!input.title.trim()) throw new Error("Lesson title is required");
+  validateLesson(input);
 
   const last = await prisma.lesson.findFirst({
     where: { courseId },
@@ -184,7 +258,7 @@ export async function createLesson(courseId: string, input: LessonInput) {
 
 export async function updateLesson(lessonId: string, input: LessonInput) {
   await requireAdmin();
-  if (!input.title.trim()) throw new Error("Lesson title is required");
+  validateLesson(input);
 
   const lesson = await prisma.lesson.update({
     where: { id: lessonId },

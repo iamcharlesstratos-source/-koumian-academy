@@ -22,11 +22,15 @@ export default async function CourseDetailPage({
   params: { slug: string };
 }) {
   const session = await auth();
+  const isAdminUser = session?.user?.role === "admin";
 
   const course = await prisma.course.findUnique({
     where: { slug: params.slug },
     include: {
       lessons: {
+        // Admins see unpublished lessons too (for review/editing in the public view);
+        // everyone else only sees published lessons.
+        where: isAdminUser ? undefined : { published: true },
         orderBy: { order: "asc" },
         select: {
           id: true,
@@ -38,7 +42,7 @@ export default async function CourseDetailPage({
     },
   });
 
-  if (!course || (!course.published && session?.user?.role !== "admin")) {
+  if (!course || (!course.published && !isAdminUser)) {
     notFound();
   }
 
@@ -56,7 +60,7 @@ export default async function CourseDetailPage({
 
   const isApproved = session?.user?.status === "approved";
   const canAccess = isApproved && enrolled;
-  const isAdmin = session?.user?.role === "admin";
+  const isAdmin = isAdminUser;
 
   // Pull completions for this user's lessons in this course
   let completedIds = new Set<string>();

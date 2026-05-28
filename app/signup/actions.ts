@@ -1,6 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export type SignupInput = {
@@ -16,6 +17,8 @@ export type SignupResult =
 
 const USERNAME_RE = /^[a-z0-9_]{3,24}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NAME_MAX = 80;
+const EMAIL_MAX = 254;
 
 export async function signup(input: SignupInput): Promise<SignupResult> {
   const name = input.name.trim();
@@ -26,7 +29,10 @@ export async function signup(input: SignupInput): Promise<SignupResult> {
   if (name.length < 2) {
     return { ok: false, error: "Please enter your name (2+ characters)." };
   }
-  if (!EMAIL_RE.test(email)) {
+  if (name.length > NAME_MAX) {
+    return { ok: false, error: `Name must be ${NAME_MAX} characters or fewer.` };
+  }
+  if (email.length > EMAIL_MAX || !EMAIL_RE.test(email)) {
     return { ok: false, error: "Please enter a valid email address." };
   }
   if (!USERNAME_RE.test(username)) {
@@ -38,6 +44,9 @@ export async function signup(input: SignupInput): Promise<SignupResult> {
   }
   if (password.length < 8) {
     return { ok: false, error: "Password must be at least 8 characters." };
+  }
+  if (password.length > 200) {
+    return { ok: false, error: "Password is too long." };
   }
 
   const [emailTaken, usernameTaken] = await Promise.all([
@@ -72,16 +81,35 @@ export async function signup(input: SignupInput): Promise<SignupResult> {
   const role = adminCount === 0 ? "admin" : "user";
   const status = adminCount === 0 ? "approved" : "pending";
 
-  await prisma.user.create({
-    data: {
-      name,
-      email,
-      username,
-      passwordHash,
-      role,
-      status,
-    },
-  });
+  try {
+    await prisma.user.create({
+      data: {
+        name,
+        email,
+        username,
+        passwordHash,
+        role,
+        status,
+      },
+    });
+  } catch (e) {
+    // Race condition: another concurrent signup grabbed this email/username
+    // between our findUnique check and create. Surface a friendly error.
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      const target = (e.meta?.target as string[] | undefined)?.join(",") ?? "";
+      if (target.includes("username")) {
+        return { ok: false, error: "That username is already taken." };
+      }
+      return {
+        ok: false,
+        error: "An account with this email already exists. Try signing in.",
+      };
+    }
+    throw e;
+  }
 
   return { ok: true, email };
 }

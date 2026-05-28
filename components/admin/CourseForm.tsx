@@ -244,7 +244,7 @@ export function CourseForm({ initial }: { initial?: Initial }) {
       </div>
 
       {error && (
-        <div className="mt-5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="mt-5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-200">
           {error}
         </div>
       )}
@@ -293,7 +293,7 @@ function CourseTrailerPreview({
   if (!resolved) {
     return (
       <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/[0.05] px-4 py-3">
-        <p className="text-xs text-amber-200">
+        <p className="text-xs text-amber-700 dark:text-amber-200">
           Couldn&apos;t auto-detect the video provider. Try a different URL, or
           pick the right Type above.
         </p>

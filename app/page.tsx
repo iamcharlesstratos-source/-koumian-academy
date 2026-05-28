@@ -27,6 +27,7 @@ export default async function HomePage() {
           course: {
             include: {
               lessons: {
+                where: { published: true }, // Only count published lessons toward progress
                 orderBy: { order: "asc" },
                 select: { id: true, order: true },
               },

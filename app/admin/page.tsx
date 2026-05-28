@@ -113,6 +113,7 @@ export default async function AdminDashboard() {
                       <img
                         src={u.image}
                         alt=""
+                        referrerPolicy="no-referrer"
                         className="h-9 w-9 rounded-full"
                       />
                     ) : (

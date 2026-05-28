@@ -6,6 +6,13 @@ const nextConfig = {
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
     ],
   },
+  experimental: {
+    // Lesson editor can ship sections + assignment body up to ~165 KB at the
+    // schema limits — give server actions headroom over the default 1 MB.
+    serverActions: {
+      bodySizeLimit: "3mb",
+    },
+  },
 };
 
 module.exports = nextConfig;

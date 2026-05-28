@@ -76,6 +76,7 @@ export default async function ProfilePage() {
                   <img
                     src={user.image}
                     alt=""
+                    referrerPolicy="no-referrer"
                     className="h-24 w-24 rounded-full ring-4 ring-purple/15"
                   />
                 ) : (

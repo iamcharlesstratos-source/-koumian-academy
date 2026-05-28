@@ -51,6 +51,7 @@ export function UserRow({
             <img
               src={user.image}
               alt=""
+              referrerPolicy="no-referrer"
               className="h-10 w-10 rounded-full"
             />
           ) : (

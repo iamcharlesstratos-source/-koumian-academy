@@ -207,7 +207,12 @@ function UserMenu({ user }: { user: SessionUser }) {
       >
         {user.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={user.image} alt="" className="h-7 w-7 rounded-full" />
+          <img
+            src={user.image}
+            alt=""
+            referrerPolicy="no-referrer"
+            className="h-7 w-7 rounded-full"
+          />
         ) : (
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple/20">
             <UserIcon className="h-3.5 w-3.5 text-purple-500 dark:text-purple-200" />

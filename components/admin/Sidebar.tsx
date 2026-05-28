@@ -79,6 +79,7 @@ export function Sidebar({ user }: { user: AdminUser }) {
             <img
               src={user.image}
               alt=""
+              referrerPolicy="no-referrer"
               className="h-9 w-9 rounded-full"
             />
           ) : (

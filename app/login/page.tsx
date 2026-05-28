@@ -6,15 +6,17 @@ import { GoogleSignInButton } from "./GoogleSignInButton";
 import { CredentialsForm } from "./CredentialsForm";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { safeCallbackUrl } from "@/lib/utils";
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: { callbackUrl?: string };
 }) {
+  const callbackUrl = safeCallbackUrl(searchParams.callbackUrl);
   const session = await auth();
   if (session?.user) {
-    redirect(searchParams.callbackUrl ?? "/");
+    redirect(callbackUrl);
   }
 
   return (
@@ -44,7 +46,7 @@ export default async function LoginPage({
           </p>
 
           <div className="mt-7">
-            <CredentialsForm callbackUrl={searchParams.callbackUrl} />
+            <CredentialsForm callbackUrl={callbackUrl} />
           </div>
 
           <div className="my-7 flex items-center gap-3">
@@ -55,7 +57,7 @@ export default async function LoginPage({
             <span className="h-px flex-1 bg-current opacity-10" />
           </div>
 
-          <GoogleSignInButton callbackUrl={searchParams.callbackUrl} />
+          <GoogleSignInButton callbackUrl={callbackUrl} />
         </div>
 
         <p className="mt-6 text-center text-sm text-muted">

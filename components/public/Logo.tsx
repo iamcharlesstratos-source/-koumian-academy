@@ -1,6 +1,9 @@
 import Link from "next/link";
 
 export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  // Bigger logo sizes than before — the philosopher mark has detail (circuits +
+  // beard) that benefits from extra display area. Using logo.png (transparent
+  // background) instead of logo.jpg so the mark blends into any theme.
   const dims =
     size === "sm" ? "h-10 w-10" : size === "lg" ? "h-20 w-20" : "h-14 w-14";
   const text =

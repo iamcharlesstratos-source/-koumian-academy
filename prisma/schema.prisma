@@ -1,6 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  // `driverAdapters` lets the client run on edge runtimes (Cloudflare Workers,
+  // Cloudflare Pages) by swapping the native query engine for a JS HTTP driver.
+  // `binaryTargets` keeps the native engine for Node.js (local dev, Netlify).
+  previewFeatures = ["driverAdapters"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {

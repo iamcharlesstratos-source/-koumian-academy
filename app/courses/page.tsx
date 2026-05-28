@@ -29,7 +29,8 @@ export default async function CoursesPage({
       level: true,
       durationMin: true,
       priceCents: true,
-      _count: { select: { lessons: true } },
+      // Count only published lessons (drafts shouldn't inflate the count on the public catalog).
+      _count: { select: { lessons: { where: { published: true } } } },
     },
   });
 
