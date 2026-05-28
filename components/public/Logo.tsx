@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const dims =
-    size === "sm" ? "h-7 w-7" : size === "lg" ? "h-12 w-12" : "h-9 w-9";
+    size === "sm" ? "h-8 w-8" : size === "lg" ? "h-14 w-14" : "h-10 w-10";
   const text =
     size === "sm"
       ? "text-base"
@@ -20,7 +20,7 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
       <span className={`relative ${dims}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo.svg"
+          src="/logo.jpg"
           alt=""
           className="h-full w-full transition-transform group-hover:scale-105"
         />
