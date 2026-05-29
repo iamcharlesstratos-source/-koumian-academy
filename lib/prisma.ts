@@ -1,9 +1,9 @@
-// Prisma client backed by Neon's HTTP/WebSocket driver.
+// Lazy Prisma client backed by Neon's HTTP/WebSocket driver.
 //
-// This adapter works on every runtime we deploy to: Node.js (local dev,
-// Vercel, Netlify) and the Cloudflare Workers nodejs_compat runtime — so we
-// no longer need runtime detection. The HTTP transport is slightly slower
-// than a direct TCP socket for big loads, but the trade-off is portability.
+// IMPORTANT: the client is only instantiated on first property access — not
+// on module load. This prevents the Next.js build from crashing during
+// "Collecting page data" on hosts (e.g. Cloudflare) where DATABASE_URL is a
+// runtime-only secret and not exposed to the build step.
 
 import { PrismaClient } from "@prisma/client";
 import { Pool } from "@neondatabase/serverless";
@@ -17,7 +17,9 @@ declare global {
 function makePrisma(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error("DATABASE_URL is not set");
+    throw new Error(
+      "DATABASE_URL is not set. Add it to your runtime environment variables."
+    );
   }
   const pool = new Pool({ connectionString });
   const adapter = new PrismaNeon(pool);
@@ -28,8 +30,20 @@ function makePrisma(): PrismaClient {
   });
 }
 
-export const prisma = globalThis.__prisma ?? makePrisma();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.__prisma = prisma;
+function getClient(): PrismaClient {
+  if (!globalThis.__prisma) {
+    globalThis.__prisma = makePrisma();
+  }
+  return globalThis.__prisma;
 }
+
+// Proxy lets us keep the simple `prisma.user.findMany()` API while delaying
+// real client creation until something is actually accessed. Bind functions
+// to the real client so `this` resolves correctly for chained queries.
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_, prop, receiver) {
+    const client = getClient();
+    const value = Reflect.get(client, prop, receiver);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+}) as PrismaClient;
