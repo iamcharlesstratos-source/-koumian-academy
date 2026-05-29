@@ -1,10 +1,11 @@
 generator client {
   provider        = "prisma-client-js"
-  // `driverAdapters` lets the client run on edge runtimes (Cloudflare Workers,
-  // Cloudflare Pages) by swapping the native query engine for a JS HTTP driver.
-  // `binaryTargets` keeps the native engine for Node.js (local dev, Netlify).
+  // `driverAdapters` swaps Prisma's native query engine for the JS HTTP driver
+  // exported by @prisma/adapter-neon. We DON'T set `binaryTargets` because
+  // shipping the native engine forces Prisma to call `fs.readdir` at startup
+  // to locate the engine binary — that filesystem call isn't implemented in
+  // Cloudflare Workers' `unenv` polyfills, so it crashes the Worker at boot.
   previewFeatures = ["driverAdapters"]
-  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
