@@ -1,12 +1,17 @@
-# Cloudflare Pages configuration for Koumian Academy.
-# Read by `wrangler` CLI and Cloudflare's build system.
+# Cloudflare Workers configuration for Koumian Academy.
+# Uses @opennextjs/cloudflare adapter — produces a Worker + Static Assets bundle.
+#
+# Docs: https://opennext.js.org/cloudflare
 
 name = "koumian-academy"
-compatibility_date = "2026-05-28"
+main = ".open-next/worker.js"
+compatibility_date = "2025-01-01"
 
-# Required for Node.js polyfills (bcryptjs, etc.) and to enable the global
-# Node primitives that Next.js / Auth.js / Prisma rely on at runtime.
+# Required to polyfill Node.js APIs (bcryptjs, etc.) and to run our auth
+# stack on the Cloudflare runtime.
 compatibility_flags = ["nodejs_compat"]
 
-# Where the Cloudflare adapter writes the built site.
-pages_build_output_dir = ".vercel/output/static"
+# Static assets served from the edge CDN; everything else routes to the Worker.
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"

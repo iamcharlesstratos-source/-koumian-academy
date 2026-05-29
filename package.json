@@ -11,13 +11,14 @@
     "db:studio": "prisma studio",
     "make-admin": "node --env-file=.env scripts/make-admin.mjs",
     "postinstall": "prisma generate",
-    "pages:build": "npx @cloudflare/next-on-pages",
-    "pages:preview": "npm run pages:build && wrangler pages dev .vercel/output/static",
-    "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static"
+    "cf:build": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion",
+    "cf:preview": "opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
     "@neondatabase/serverless": "^0.10.4",
+    "@opennextjs/cloudflare": "^1.19.11",
     "@prisma/adapter-neon": "^5.22.0",
     "@prisma/client": "^5.20.0",
     "@types/bcryptjs": "^2.4.6",
@@ -34,7 +35,6 @@
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.13.16",
     "@types/node": "^22.7.5",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
