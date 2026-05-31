@@ -26,10 +26,54 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts    Account[]
-  sessions    Session[]
-  enrollments Enrollment[]
-  completions LessonCompletion[]
+  accounts      Account[]
+  sessions      Session[]
+  enrollments   Enrollment[]
+  completions   LessonCompletion[]
+  posts         Post[]
+  postLikes     PostLike[]
+  announcements Announcement[]
+}
+
+// ─── Community: feed posts & "big wins" (students post, admin moderates) ───
+model Post {
+  id        String   @id @default(cuid())
+  authorId  String
+  type      String   @default("feed") // "feed" | "win"
+  body      String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  author User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes  PostLike[]
+
+  @@index([type, createdAt])
+  @@index([authorId])
+}
+
+model PostLike {
+  id     String @id @default(cuid())
+  postId String
+  userId String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+}
+
+// ─── Community: admin-broadcast announcements (students read-only) ───
+model Announcement {
+  id        String   @id @default(cuid())
+  authorId  String
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
 }
 
 model Account {

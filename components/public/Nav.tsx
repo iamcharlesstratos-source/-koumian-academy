@@ -15,6 +15,7 @@ import {
   X,
   Info,
   Users as UsersIcon,
+  Newspaper,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -33,6 +34,7 @@ type SessionUser = {
 const APP_TABS = [
   { href: "/", label: "Home", icon: Home, exact: true },
   { href: "/courses", label: "Courses", icon: BookOpen },
+  { href: "/community", label: "Community", icon: Newspaper },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ];
 

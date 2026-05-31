@@ -13,9 +13,10 @@ export default auth((req) => {
 
   const isAdminRoute = path.startsWith("/admin");
   const isLessonRoute = /^\/courses\/[^/]+\/lessons\/[^/]+$/.test(path);
+  const isCommunityRoute = path.startsWith("/community");
 
   // Public routes — let through
-  if (!isAdminRoute && !isLessonRoute) {
+  if (!isAdminRoute && !isLessonRoute && !isCommunityRoute) {
     return NextResponse.next();
   }
 
@@ -31,8 +32,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/pending", nextUrl));
   }
 
-  // Lesson routes require account approval (per-course enrollment check happens in the page)
-  if (isLessonRoute && session.user.status !== "approved") {
+  // Lesson + community routes require account approval
+  if (
+    (isLessonRoute || isCommunityRoute) &&
+    session.user.status !== "approved"
+  ) {
     return NextResponse.redirect(new URL("/pending", nextUrl));
   }
 
@@ -40,5 +44,9 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/courses/:slug/lessons/:lessonId"],
+  matcher: [
+    "/admin/:path*",
+    "/courses/:slug/lessons/:lessonId",
+    "/community/:path*",
+  ],
 };

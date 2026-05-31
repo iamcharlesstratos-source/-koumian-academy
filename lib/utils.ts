@@ -5,6 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** "just now", "5m ago", "3h ago", "2d ago", or a date for older items. */
+export function timeAgo(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (seconds < 45) return "just now";
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
   const h = Math.floor(minutes / 60);
