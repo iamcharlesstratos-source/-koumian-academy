@@ -62,3 +62,25 @@ export type Category = (typeof CATEGORIES)[number];
 
 export const LEVELS = ["beginner", "intermediate", "advanced"] as const;
 export type Level = (typeof LEVELS)[number];
+
+/**
+ * Deterministic, readable certificate ID derived from the user + course IDs.
+ * Same student + same course always yields the same code (e.g. "KA-7F3A-9C21"),
+ * so a certificate can be re-printed and the code stays stable for verification.
+ * Not cryptographically secure — it's an identifier, not a secret.
+ */
+export function certificateId(userId: string, courseId: string): string {
+  const seed = `${userId}::${courseId}`;
+  // Two independent 32-bit FNV-1a-style hashes for a 8-hex-char code.
+  let h1 = 0x811c9dc5;
+  let h2 = 0x1505;
+  for (let i = 0; i < seed.length; i++) {
+    const c = seed.charCodeAt(i);
+    h1 ^= c;
+    h1 = Math.imul(h1, 0x01000193);
+    h2 = Math.imul(h2, 33) ^ c;
+  }
+  const a = (h1 >>> 0).toString(16).toUpperCase().padStart(8, "0").slice(0, 4);
+  const b = (h2 >>> 0).toString(16).toUpperCase().padStart(8, "0").slice(0, 4);
+  return `KA-${a}-${b}`;
+}

@@ -90,6 +90,55 @@ export async function toggleLike(
   return { ok: true, liked: true };
 }
 
+// ─── Comments ──────────────────────────────────────────────────────────
+
+export async function createComment(
+  postId: string,
+  body: string
+): Promise<ActionResult> {
+  const user = await requireApproved();
+  if (!user) return { ok: false, error: "You must be an approved member." };
+
+  const text = body.trim();
+  if (!text) return { ok: false, error: "Write a comment first." };
+  if (text.length > 1000)
+    return { ok: false, error: "Keep comments under 1000 characters." };
+
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { id: true },
+  });
+  if (!post) return { ok: false, error: "Post not found." };
+
+  await prisma.comment.create({
+    data: { postId, authorId: user.id, body: text },
+  });
+  revalidatePath("/community");
+  revalidatePath("/community/wins");
+  return { ok: true };
+}
+
+export async function deleteComment(commentId: string): Promise<ActionResult> {
+  const user = await requireApproved();
+  if (!user) return { ok: false, error: "Not allowed." };
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { authorId: true },
+  });
+  if (!comment) return { ok: false, error: "Comment not found." };
+
+  // Author or admin can delete.
+  if (comment.authorId !== user.id && user.role !== "admin") {
+    return { ok: false, error: "You can only delete your own comments." };
+  }
+
+  await prisma.comment.delete({ where: { id: commentId } });
+  revalidatePath("/community");
+  revalidatePath("/community/wins");
+  return { ok: true };
+}
+
 // ─── Announcements (admin only) ────────────────────────────────────────
 
 export async function createAnnouncement(input: {

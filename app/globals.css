@@ -274,3 +274,45 @@
     scrollbar-color: rgba(124, 58, 237, 0.3) transparent;
   }
 }
+
+/* ─── Certificate print styles ───
+ * When printing, hide the chrome (nav, buttons) and render the certificate
+ * card edge-to-edge on a clean white landscape page. Toggled by .no-print
+ * (hidden) and .cert-sheet (the printable area).
+ */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  body {
+    background: #ffffff !important;
+  }
+  body::before,
+  body::after {
+    display: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .cert-sheet {
+    position: absolute;
+    inset: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    box-shadow: none !important;
+  }
+  .cert-card {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    min-height: 100vh;
+  }
+  /* Force the brand gradients/colors to render on paper */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

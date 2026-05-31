@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  Award,
   BarChart3,
   Clock,
   Lock,
@@ -189,6 +190,18 @@ export default async function CourseDetailPage({
                   firstLessonId={lessons[0]?.id}
                   hasProgress={completedCount > 0 && completedCount < totalCount}
                 />
+
+                {(canAccess || isAdmin) &&
+                  totalCount > 0 &&
+                  progressPct === 100 && (
+                    <Link
+                      href={`/courses/${course.slug}/certificate`}
+                      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-6 py-3 text-sm font-medium text-amber-700 transition-all hover:bg-amber-500/20 dark:text-amber-300"
+                    >
+                      <Award className="h-4 w-4" />
+                      Get your certificate
+                    </Link>
+                  )}
                 <p className="mt-4 text-center text-xs text-muted">
                   {!session?.user
                     ? "Sign in to request access."

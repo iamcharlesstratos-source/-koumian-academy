@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toggleLessonComplete } from "./actions";
@@ -14,11 +16,19 @@ export function MarkCompleteButton({
 }) {
   const [completed, setCompleted] = useState(initialCompleted);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   const click = () => {
     startTransition(async () => {
       const result = await toggleLessonComplete(lessonId);
-      if (result.ok) setCompleted(result.completed);
+      if (result.ok) {
+        setCompleted(result.completed);
+        // Refresh the server component so the sidebar progress bar and the
+        // "Course complete → certificate" banner update in place.
+        router.refresh();
+      } else {
+        toast.error(result.error);
+      }
     });
   };
 

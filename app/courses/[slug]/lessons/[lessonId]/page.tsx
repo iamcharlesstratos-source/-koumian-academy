@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
+  Award,
   PlayCircle,
   BarChart3,
   Clock,
@@ -144,6 +145,25 @@ export default async function LessonPage({
                   />
                 </div>
               </div>
+
+              {!isAdmin && progressPct === 100 && totalCount > 0 && (
+                <Link
+                  href={`/courses/${course.slug}/certificate`}
+                  className="mt-5 flex items-center gap-3 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-500/10 to-purple/10 p-3 transition-colors hover:from-amber-500/20"
+                >
+                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/15 ring-1 ring-amber-500/30">
+                    <Award className="h-4 w-4 text-amber-500 dark:text-amber-300" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-fg">
+                      Course complete!
+                    </span>
+                    <span className="block text-[11px] text-amber-600 dark:text-amber-300">
+                      Get your certificate →
+                    </span>
+                  </span>
+                </Link>
+              )}
 
               <div className="mt-7 border-t border-theme pt-5">
                 <div className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-muted">

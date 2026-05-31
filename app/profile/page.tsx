@@ -2,13 +2,16 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ArrowRight,
+  Award,
   BookOpen,
   Mail,
   AtSign,
   Calendar,
   Clock,
   Lock,
+  Settings,
   ShieldCheck,
+  Trophy,
 } from "lucide-react";
 import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -44,6 +47,25 @@ export default async function ProfilePage() {
   if (!user) redirect("/login");
 
   const enrolledCourses = user.enrollments.map((e) => e.course);
+
+  // Per-course progress: count this user's completions across all enrolled lessons.
+  const allLessonIds = enrolledCourses.flatMap((c) => c.lessons.map((l) => l.id));
+  const completions =
+    allLessonIds.length === 0
+      ? []
+      : await prisma.lessonCompletion.findMany({
+          where: { userId: user.id, lessonId: { in: allLessonIds } },
+          select: { lessonId: true },
+        });
+  const completedSet = new Set(completions.map((c) => c.lessonId));
+  const progressByCourse = new Map(
+    enrolledCourses.map((c) => {
+      const total = c.lessons.length;
+      const done = c.lessons.filter((l) => completedSet.has(l.id)).length;
+      return [c.id, { total, done, pct: total === 0 ? 0 : Math.round((done / total) * 100) }];
+    })
+  );
+
   const memberSince = user.createdAt.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
@@ -110,6 +132,14 @@ export default async function ProfilePage() {
 
               <hr className="my-6 border-theme" />
 
+              <Link
+                href="/profile/settings"
+                className="mb-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-theme-strong bg-current/[0.02] px-6 py-3 text-sm font-medium text-fg transition-colors hover:bg-current/[0.05]"
+              >
+                <Settings className="h-4 w-4" />
+                Account settings
+              </Link>
+
               <form
                 action={async () => {
                   "use server";
@@ -163,42 +193,105 @@ export default async function ProfilePage() {
                 <NoCoursesYet />
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {enrolledCourses.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/courses/${c.slug}${
-                        c.lessons[0] ? `/lessons/${c.lessons[0].id}` : ""
-                      }`}
-                      className="group surface flex flex-col rounded-2xl border border-theme p-5 backdrop-blur-sm transition-all hover:border-purple-soft/40"
-                    >
-                      <span className="inline-flex w-fit items-center rounded-full border border-purple-soft/30 bg-purple/10 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-purple-700 dark:text-purple-200">
-                        {c.category}
-                      </span>
-                      <h3 className="mt-3 text-lg font-semibold leading-snug text-fg transition-colors group-hover:text-purple-700 dark:group-hover:text-purple-100">
-                        {c.title}
-                      </h3>
-                      <p className="mt-2 line-clamp-2 text-sm text-muted">
-                        {c.description}
-                      </p>
-                      <div className="mt-4 flex items-center justify-between border-t border-theme pt-4 text-xs text-muted">
-                        <span className="flex items-center gap-3">
-                          <span className="flex items-center gap-1.5">
-                            <BookOpen className="h-3.5 w-3.5 text-purple-500 dark:text-purple-300" />
-                            {c.lessons.length} lesson
-                            {c.lessons.length === 1 ? "" : "s"}
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 text-purple-500 dark:text-purple-300" />
-                            {formatDuration(c.durationMin)}
-                          </span>
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-purple-600 transition-transform group-hover:translate-x-1 dark:text-purple-300">
-                          Continue
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </span>
+                  {enrolledCourses.map((c) => {
+                    const prog = progressByCourse.get(c.id) ?? {
+                      total: c.lessons.length,
+                      done: 0,
+                      pct: 0,
+                    };
+                    const finished = prog.total > 0 && prog.done === prog.total;
+                    const continueHref = `/courses/${c.slug}${
+                      c.lessons[0] ? `/lessons/${c.lessons[0].id}` : ""
+                    }`;
+                    return (
+                      <div
+                        key={c.id}
+                        className="group surface flex flex-col rounded-2xl border border-theme p-5 backdrop-blur-sm transition-all hover:border-purple-soft/40"
+                      >
+                        <Link href={continueHref} className="flex flex-1 flex-col">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="inline-flex w-fit items-center rounded-full border border-purple-soft/30 bg-purple/10 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-purple-700 dark:text-purple-200">
+                              {c.category}
+                            </span>
+                            {finished && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-300">
+                                <Trophy className="h-3 w-3" />
+                                Finished
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="mt-3 text-lg font-semibold leading-snug text-fg transition-colors group-hover:text-purple-700 dark:group-hover:text-purple-100">
+                            {c.title}
+                          </h3>
+                          <p className="mt-2 line-clamp-2 text-sm text-muted">
+                            {c.description}
+                          </p>
+
+                          {prog.total > 0 && (
+                            <div className="mt-4">
+                              <div className="flex items-baseline justify-between text-[11px] text-muted">
+                                <span>
+                                  <span className="text-fg font-medium">
+                                    {prog.done}
+                                  </span>{" "}
+                                  / {prog.total} complete
+                                </span>
+                                <span
+                                  className={
+                                    finished
+                                      ? "text-emerald-600 dark:text-emerald-300"
+                                      : "text-purple-600 dark:text-purple-300"
+                                  }
+                                >
+                                  {prog.pct}%
+                                </span>
+                              </div>
+                              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-current/10">
+                                <div
+                                  className={`h-full rounded-full transition-[width] duration-500 ${
+                                    finished ? "bg-emerald-500" : "bg-purple"
+                                  }`}
+                                  style={{ width: `${prog.pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-4 flex items-center justify-between border-t border-theme pt-4 text-xs text-muted">
+                            <span className="flex items-center gap-3">
+                              <span className="flex items-center gap-1.5">
+                                <BookOpen className="h-3.5 w-3.5 text-purple-500 dark:text-purple-300" />
+                                {c.lessons.length} lesson
+                                {c.lessons.length === 1 ? "" : "s"}
+                              </span>
+                              <span className="flex items-center gap-1.5">
+                                <Clock className="h-3.5 w-3.5 text-purple-500 dark:text-purple-300" />
+                                {formatDuration(c.durationMin)}
+                              </span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-purple-600 transition-transform group-hover:translate-x-1 dark:text-purple-300">
+                              {finished
+                                ? "Review"
+                                : prog.done === 0
+                                ? "Start"
+                                : "Continue"}
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </span>
+                          </div>
+                        </Link>
+
+                        {finished && (
+                          <Link
+                            href={`/courses/${c.slug}/certificate`}
+                            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
+                          >
+                            <Award className="h-3.5 w-3.5" />
+                            Get your certificate
+                          </Link>
+                        )}
                       </div>
-                    </Link>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>

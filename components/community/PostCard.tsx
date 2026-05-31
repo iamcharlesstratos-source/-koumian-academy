@@ -2,26 +2,77 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Heart, Trash2, Trophy } from "lucide-react";
-import { deletePost, toggleLike } from "@/app/community/actions";
+import { Heart, Trash2, Trophy, MessageCircle, Send, Loader2 } from "lucide-react";
+import {
+  deletePost,
+  toggleLike,
+  createComment,
+  deleteComment,
+} from "@/app/community/actions";
 import { timeAgo, cn } from "@/lib/utils";
+
+export type CommentData = {
+  id: string;
+  body: string;
+  createdAt: string;
+  authorName: string | null;
+  authorImage: string | null;
+  canDelete: boolean;
+};
 
 export type PostCardData = {
   id: string;
   type: string;
   body: string;
   imageUrl: string | null;
-  createdAt: string; // ISO
+  createdAt: string;
   authorName: string | null;
   authorImage: string | null;
   likeCount: number;
   likedByMe: boolean;
   canDelete: boolean;
+  comments: CommentData[];
 };
+
+function Avatar({
+  name,
+  image,
+  size = "md",
+}: {
+  name: string | null;
+  image: string | null;
+  size?: "sm" | "md";
+}) {
+  const dim = size === "sm" ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm";
+  if (image) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={image}
+        alt=""
+        referrerPolicy="no-referrer"
+        className={cn("flex-shrink-0 rounded-full", dim)}
+      />
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "flex flex-shrink-0 items-center justify-center rounded-full bg-purple/15 font-medium text-purple-700 dark:text-purple-200",
+        dim
+      )}
+    >
+      {name?.[0]?.toUpperCase() ?? "?"}
+    </span>
+  );
+}
 
 export function PostCard({ post }: { post: PostCardData }) {
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [comments, setComments] = useState(post.comments);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
   const [deleted, setDeleted] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -30,14 +81,12 @@ export function PostCard({ post }: { post: PostCardData }) {
   const isWin = post.type === "win";
 
   const onLike = () => {
-    // Optimistic toggle
     const next = !liked;
     setLiked(next);
     setLikeCount((c) => c + (next ? 1 : -1));
     startTransition(async () => {
       const result = await toggleLike(post.id);
       if (!result.ok) {
-        // revert
         setLiked(!next);
         setLikeCount((c) => c + (next ? -1 : 1));
         toast.error(result.error);
@@ -52,9 +101,40 @@ export function PostCard({ post }: { post: PostCardData }) {
       if (result.ok) {
         setDeleted(true);
         toast.success("Post deleted.");
-      } else {
-        toast.error(result.error);
-      }
+      } else toast.error(result.error);
+    });
+  };
+
+  const onComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = commentText.trim();
+    if (!text) return;
+    startTransition(async () => {
+      const result = await createComment(post.id, text);
+      if (result.ok) {
+        // Optimistic add (server revalidate will reconcile on next load)
+        setComments((c) => [
+          ...c,
+          {
+            id: `temp-${Date.now()}`,
+            body: text,
+            createdAt: new Date().toISOString(),
+            authorName: "You",
+            authorImage: null,
+            canDelete: true,
+          },
+        ]);
+        setCommentText("");
+      } else toast.error(result.error);
+    });
+  };
+
+  const onDeleteComment = (id: string) => {
+    startTransition(async () => {
+      const result = await deleteComment(id);
+      if (result.ok) {
+        setComments((c) => c.filter((x) => x.id !== id));
+      } else toast.error(result.error);
     });
   };
 
@@ -66,19 +146,7 @@ export function PostCard({ post }: { post: PostCardData }) {
       )}
     >
       <div className="flex items-start gap-3">
-        {post.authorImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={post.authorImage}
-            alt=""
-            referrerPolicy="no-referrer"
-            className="h-10 w-10 flex-shrink-0 rounded-full"
-          />
-        ) : (
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-purple/15 text-sm font-medium text-purple-700 dark:text-purple-200">
-            {post.authorName?.[0]?.toUpperCase() ?? "?"}
-          </span>
-        )}
+        <Avatar name={post.authorName} image={post.authorImage} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate text-sm font-medium text-fg">
@@ -133,9 +201,70 @@ export function PostCard({ post }: { post: PostCardData }) {
           )}
         >
           <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-          {likeCount > 0 ? likeCount : ""} {likeCount === 1 ? "like" : "likes"}
+          {likeCount > 0 ? likeCount : ""}
+        </button>
+        <button
+          onClick={() => setShowComments((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-muted transition-colors hover:bg-purple/5 hover:text-fg"
+        >
+          <MessageCircle className="h-4 w-4" />
+          {comments.length > 0 ? comments.length : ""} Comment
+          {comments.length === 1 ? "" : "s"}
         </button>
       </div>
+
+      {showComments && (
+        <div className="mt-3 space-y-3 border-t border-theme pt-3">
+          {comments.map((c) => (
+            <div key={c.id} className="flex items-start gap-2.5">
+              <Avatar name={c.authorName} image={c.authorImage} size="sm" />
+              <div className="min-w-0 flex-1 rounded-xl bg-current/[0.03] px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-xs font-medium text-fg">
+                    {c.authorName ?? "Member"}
+                  </span>
+                  <span className="text-[10px] text-muted">
+                    {timeAgo(c.createdAt)}
+                  </span>
+                  {c.canDelete && !c.id.startsWith("temp-") && (
+                    <button
+                      onClick={() => onDeleteComment(c.id)}
+                      className="ml-auto text-muted transition-colors hover:text-rose-500"
+                      title="Delete comment"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+                <p className="mt-0.5 whitespace-pre-wrap text-sm text-fg">
+                  {c.body}
+                </p>
+              </div>
+            </div>
+          ))}
+
+          <form onSubmit={onComment} className="flex items-center gap-2">
+            <input
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Write a comment…"
+              maxLength={1000}
+              className="flex-1 rounded-full border border-theme bg-current/[0.02] px-4 py-2 text-sm text-fg placeholder:text-muted focus:border-purple/60 focus:outline-none focus:ring-1 focus:ring-purple/30"
+            />
+            <button
+              type="submit"
+              disabled={pending || !commentText.trim()}
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-purple text-white transition-colors hover:bg-purple-600 disabled:opacity-40"
+            >
+              {pending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </button>
+          </form>
+        </div>
+      )}
     </article>
   );
 }

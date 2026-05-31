@@ -19,6 +19,10 @@ export default async function FeedPage() {
     include: {
       author: { select: { name: true, image: true } },
       likes: { select: { userId: true } },
+      comments: {
+        orderBy: { createdAt: "asc" },
+        include: { author: { select: { name: true, image: true } } },
+      },
     },
   });
 
@@ -33,6 +37,14 @@ export default async function FeedPage() {
     likeCount: p.likes.length,
     likedByMe: p.likes.some((l) => l.userId === userId),
     canDelete: p.authorId === userId || isAdmin,
+    comments: p.comments.map((c) => ({
+      id: c.id,
+      body: c.body,
+      createdAt: c.createdAt.toISOString(),
+      authorName: c.author.name,
+      authorImage: c.author.image,
+      canDelete: c.authorId === userId || isAdmin,
+    })),
   }));
 
   return (
