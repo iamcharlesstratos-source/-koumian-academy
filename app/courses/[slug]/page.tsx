@@ -98,6 +98,20 @@ export default async function CourseDetailPage({
             Back to catalog
           </Link>
 
+          {course.coverImageUrl && (
+            <div className="mb-10 overflow-hidden rounded-2xl border border-theme">
+              <div className="relative aspect-[21/9] w-full bg-current/[0.03]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={course.coverImageUrl}
+                  alt={course.title}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
             <div className="md:col-span-2">
               <span className="inline-flex items-center rounded-full border border-purple-soft/30 bg-purple/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-purple-700 dark:text-purple-200">

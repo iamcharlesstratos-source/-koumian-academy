@@ -39,6 +39,7 @@ export default async function EditCoursePage({
           durationMin: course.durationMin,
           priceCents: course.priceCents,
           published: course.published,
+          coverImageUrl: course.coverImageUrl,
           trailerUrl: course.trailerUrl,
           trailerType: course.trailerType,
         }}

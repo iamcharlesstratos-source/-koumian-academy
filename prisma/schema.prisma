@@ -76,9 +76,10 @@ model Course {
   level       String
   durationMin Int
   priceCents  Int
-  published   Boolean  @default(true)
-  trailerUrl  String?  // Optional course-level intro/promo video URL
-  trailerType String?  // Provider hint: youtube | vimeo | googleDrive | loom | facebook | tiktok | mp4 | auto
+  published     Boolean @default(true)
+  coverImageUrl String? // Optional course cover image URL (shown on cards + detail hero)
+  trailerUrl    String? // Optional course-level intro/promo video URL
+  trailerType   String? // Provider hint: youtube | vimeo | googleDrive | loom | facebook | tiktok | mp4 | auto
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

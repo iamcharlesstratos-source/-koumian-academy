@@ -5,6 +5,7 @@ import {
   ThemeProvider,
   themeBootstrapScript,
 } from "@/components/public/ThemeProvider";
+import { Toaster } from "@/components/public/Toaster";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -44,7 +45,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

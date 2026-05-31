@@ -5,6 +5,9 @@ build/
 .env
 .env*.local
 .netlify/
+.vercel/
+.open-next/
+.wrangler/
 prisma/*.db
 prisma/*.db-journal
 prisma/migrations/dev/

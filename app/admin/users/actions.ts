@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/access";
 
@@ -45,4 +47,40 @@ export async function revokeCourseAccess(userId: string, courseId: string) {
     where: { userId, courseId },
   });
   revalidatePath("/admin/users");
+}
+
+export type ResetPasswordResult =
+  | { ok: true; tempPassword: string; email: string }
+  | { ok: false; error: string };
+
+/**
+ * Admin-initiated password reset (no email required).
+ *
+ * Generates a random temporary password, hashes it, and saves it to the user.
+ * Returns the plaintext temp password ONCE so the admin can relay it to the
+ * user out-of-band (chat, in person). The user can change it later from their
+ * account once a self-service flow exists.
+ */
+export async function resetUserPassword(
+  userId: string
+): Promise<ResetPasswordResult> {
+  await requireAdmin();
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+  if (!user) return { ok: false, error: "User not found." };
+
+  // 12 random base64url chars — easy to relay, hard to guess.
+  const tempPassword = crypto.randomBytes(9).toString("base64url").slice(0, 12);
+  const passwordHash = await bcrypt.hash(tempPassword, 12);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash },
+  });
+
+  revalidatePath("/admin/users");
+  return { ok: true, tempPassword, email: user.email };
 }

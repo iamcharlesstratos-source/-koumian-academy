@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Plus,
   Save,
@@ -51,6 +52,7 @@ type Course = {
   durationMin: number;
   priceCents: number;
   published: boolean;
+  coverImageUrl?: string | null;
   trailerUrl?: string | null;
   trailerType?: string | null;
 };
@@ -209,6 +211,7 @@ export function CourseEditor({
               durationMin: course.durationMin,
               priceCents: course.priceCents,
               published: course.published,
+              coverImageUrl: course.coverImageUrl ?? null,
               trailerUrl: course.trailerUrl ?? null,
               trailerType: course.trailerType ?? null,
             }}
@@ -329,7 +332,10 @@ function CurriculumSidebar({
         body: "",
         published: true,
       });
-      if (typeof newId === "string") onSelect(newId);
+      if (typeof newId === "string") {
+        onSelect(newId);
+        toast.success("Lesson added.");
+      }
     });
   };
 
@@ -548,8 +554,11 @@ function LessonFormPanel({
           assignmentFileTypes,
         });
         setSavedAt(new Date().toLocaleTimeString());
+        toast.success("Lesson saved.");
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to save");
+        const msg = e instanceof Error ? e.message : "Failed to save";
+        setError(msg);
+        toast.error(msg);
       }
     });
   };

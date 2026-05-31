@@ -15,6 +15,7 @@ type CourseInput = {
   priceCents: number;
   published: boolean;
   slug?: string;
+  coverImageUrl?: string | null;
   trailerUrl?: string | null;
   trailerType?: string | null;
 };
@@ -51,6 +52,9 @@ function validateCourse(input: CourseInput) {
   if (input.priceCents < 0) throw new Error("Price must be positive");
   if (input.trailerUrl && input.trailerUrl.length > COURSE_URL_MAX) {
     throw new Error(`Video URL must be ${COURSE_URL_MAX} characters or fewer`);
+  }
+  if (input.coverImageUrl && input.coverImageUrl.length > COURSE_URL_MAX) {
+    throw new Error(`Cover image URL must be ${COURSE_URL_MAX} characters or fewer`);
   }
 }
 
@@ -136,6 +140,7 @@ export async function createCourse(input: CourseInput) {
       durationMin: Math.round(input.durationMin),
       priceCents: Math.round(input.priceCents),
       published: input.published,
+      coverImageUrl: input.coverImageUrl?.trim() || null,
       trailerUrl: input.trailerUrl?.trim() || null,
       trailerType: input.trailerType?.trim() || null,
     },
@@ -170,6 +175,7 @@ export async function updateCourse(id: string, input: CourseInput) {
       durationMin: Math.round(input.durationMin),
       priceCents: Math.round(input.priceCents),
       published: input.published,
+      coverImageUrl: input.coverImageUrl?.trim() || null,
       trailerUrl: input.trailerUrl?.trim() || null,
       trailerType: input.trailerType?.trim() || null,
     },

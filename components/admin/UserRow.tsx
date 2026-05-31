@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import {
   Check,
   X,
@@ -8,12 +9,15 @@ import {
   Loader2,
   ShieldCheck,
   Shield,
+  KeyRound,
+  Copy,
 } from "lucide-react";
 import {
   setUserStatus,
   setUserRole,
   grantCourseAccess,
   revokeCourseAccess,
+  resetUserPassword,
 } from "@/app/admin/users/actions";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +45,48 @@ export function UserRow({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [resetResult, setResetResult] = useState<{
+    tempPassword: string;
+  } | null>(null);
+
+  const handleApprove = () =>
+    startTransition(async () => {
+      await setUserStatus(user.id, "approved");
+      toast.success(`${user.name ?? user.email} approved.`);
+    });
+
+  const handleReject = () =>
+    startTransition(async () => {
+      await setUserStatus(user.id, "rejected");
+      toast.success(`${user.name ?? user.email} rejected.`);
+    });
+
+  const handleRole = () =>
+    startTransition(async () => {
+      const next = user.role === "admin" ? "user" : "admin";
+      await setUserRole(user.id, next);
+      toast.success(
+        next === "admin" ? "Promoted to admin." : "Demoted to user."
+      );
+    });
+
+  const handleReset = () => {
+    if (
+      !confirm(
+        `Reset password for ${user.name ?? user.email}? A new temporary password will be generated.`
+      )
+    )
+      return;
+    startTransition(async () => {
+      const result = await resetUserPassword(user.id);
+      if (result.ok) {
+        setResetResult({ tempPassword: result.tempPassword });
+        toast.success("Password reset. Copy the temporary password below.");
+      } else {
+        toast.error(result.error);
+      }
+    });
+  };
 
   return (
     <div className="surface overflow-hidden rounded-xl border border-theme transition-colors hover:border-theme-strong">
@@ -82,13 +128,11 @@ export function UserRow({
 
         <div className="flex flex-wrap items-center justify-end gap-2">
           <StatusPill status={user.status} />
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {user.status !== "approved" && (
               <button
                 disabled={pending || isSelf}
-                onClick={() =>
-                  startTransition(() => setUserStatus(user.id, "approved"))
-                }
+                onClick={handleApprove}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-300 transition-colors hover:bg-emerald-500/20 disabled:opacity-40"
               >
                 <Check className="h-3.5 w-3.5" />
@@ -98,9 +142,7 @@ export function UserRow({
             {user.status !== "rejected" && (
               <button
                 disabled={pending || isSelf}
-                onClick={() =>
-                  startTransition(() => setUserStatus(user.id, "rejected"))
-                }
+                onClick={handleReject}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-300 transition-colors hover:bg-rose-500/20 disabled:opacity-40"
               >
                 <X className="h-3.5 w-3.5" />
@@ -109,11 +151,7 @@ export function UserRow({
             )}
             <button
               disabled={pending || isSelf}
-              onClick={() =>
-                startTransition(() =>
-                  setUserRole(user.id, user.role === "admin" ? "user" : "admin")
-                )
-              }
+              onClick={handleRole}
               className="inline-flex items-center gap-1.5 rounded-lg border border-theme bg-current/[0.02] px-3 py-1.5 text-xs font-medium text-fg transition-colors hover:border-purple-soft/40 hover:bg-purple/[0.08] disabled:opacity-40"
               title={
                 user.role === "admin" ? "Demote to user" : "Promote to admin"
@@ -131,6 +169,15 @@ export function UserRow({
                 </>
               )}
             </button>
+            <button
+              disabled={pending}
+              onClick={handleReset}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-theme bg-current/[0.02] px-3 py-1.5 text-xs font-medium text-fg transition-colors hover:border-purple-soft/40 hover:bg-purple/[0.08] disabled:opacity-40"
+              title="Generate a new temporary password"
+            >
+              <KeyRound className="h-3.5 w-3.5" />
+              Reset PW
+            </button>
           </div>
           <button
             onClick={() => setExpanded((v) => !v)}
@@ -146,6 +193,43 @@ export function UserRow({
           </button>
         </div>
       </div>
+
+      {resetResult && (
+        <div className="border-t border-theme bg-purple/[0.04] p-5">
+          <div className="flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+            <p className="text-sm font-medium text-fg">
+              Temporary password generated
+            </p>
+          </div>
+          <p className="mt-1 text-xs text-muted">
+            Share this with {user.name ?? user.email}. They can use it to sign
+            in. It won&apos;t be shown again.
+          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <code className="flex-1 rounded-lg border border-theme bg-current/[0.03] px-4 py-2.5 font-mono text-sm text-fg">
+              {resetResult.tempPassword}
+            </code>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(resetResult.tempPassword);
+                toast.success("Copied to clipboard.");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-theme-strong bg-current/[0.02] px-3 py-2.5 text-xs font-medium text-fg transition-colors hover:bg-current/[0.06]"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              Copy
+            </button>
+            <button
+              onClick={() => setResetResult(null)}
+              className="rounded-lg border border-theme-strong bg-current/[0.02] p-2.5 text-muted transition-colors hover:text-fg"
+              title="Dismiss"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {expanded && (
         <div className="border-t border-theme bg-current/[0.02] p-5">
@@ -165,11 +249,15 @@ export function UserRow({
                     key={c.id}
                     disabled={pending}
                     onClick={() =>
-                      startTransition(() =>
-                        enrolled
-                          ? revokeCourseAccess(user.id, c.id)
-                          : grantCourseAccess(user.id, c.id)
-                      )
+                      startTransition(async () => {
+                        if (enrolled) {
+                          await revokeCourseAccess(user.id, c.id);
+                          toast.success(`Revoked access to "${c.title}".`);
+                        } else {
+                          await grantCourseAccess(user.id, c.id);
+                          toast.success(`Granted access to "${c.title}".`);
+                        }
+                      })
                     }
                     className={cn(
                       "flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-xs transition-all disabled:opacity-50",

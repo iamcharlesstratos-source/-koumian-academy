@@ -2,7 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, Trash2, PlayCircle, Video as VideoIcon } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Loader2,
+  Save,
+  Trash2,
+  Video as VideoIcon,
+  Image as ImageIcon,
+} from "lucide-react";
 import { createCourse, updateCourse, deleteCourse } from "@/app/admin/courses/actions";
 import { CATEGORIES, LEVELS, slugify } from "@/lib/utils";
 import { resolveVideo } from "@/lib/video";
@@ -28,6 +35,7 @@ type Initial = {
   durationMin: number;
   priceCents: number;
   published: boolean;
+  coverImageUrl?: string | null;
   trailerUrl?: string | null;
   trailerType?: string | null;
 };
@@ -45,6 +53,9 @@ export function CourseForm({ initial }: { initial?: Initial }) {
   const [level, setLevel] = useState(initial?.level ?? LEVELS[0]);
   const [durationMin, setDurationMin] = useState(initial?.durationMin ?? 60);
   const [published, setPublished] = useState(initial?.published ?? true);
+  const [coverImageUrl, setCoverImageUrl] = useState(
+    initial?.coverImageUrl ?? ""
+  );
   const [trailerUrl, setTrailerUrl] = useState(initial?.trailerUrl ?? "");
   const [trailerType, setTrailerType] = useState(initial?.trailerType ?? "auto");
 
@@ -64,6 +75,7 @@ export function CourseForm({ initial }: { initial?: Initial }) {
       durationMin: Number(durationMin) || 0,
       priceCents: 0, // Pricing removed from the UI — kept at 0 for back-compat.
       published,
+      coverImageUrl: coverImageUrl.trim() || null,
       trailerUrl: trailerUrl.trim() || null,
       trailerType: trailerUrl.trim() ? trailerType : null,
     };
@@ -71,13 +83,18 @@ export function CourseForm({ initial }: { initial?: Initial }) {
       try {
         if (initial?.id) {
           await updateCourse(initial.id, payload);
+          toast.success("Course saved.");
         } else {
           await createCourse(payload);
+          // createCourse redirects; toast won't show, but kept for symmetry.
         }
         router.refresh();
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Unknown error";
-        if (!msg.includes("NEXT_REDIRECT")) setError(msg);
+        if (!msg.includes("NEXT_REDIRECT")) {
+          setError(msg);
+          toast.error(msg);
+        }
       }
     });
   };
@@ -90,7 +107,10 @@ export function CourseForm({ initial }: { initial?: Initial }) {
         await deleteCourse(initial.id!);
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Unknown error";
-        if (!msg.includes("NEXT_REDIRECT")) setError(msg);
+        if (!msg.includes("NEXT_REDIRECT")) {
+          setError(msg);
+          toast.error(msg);
+        }
       }
     });
   };
@@ -176,6 +196,46 @@ export function CourseForm({ initial }: { initial?: Initial }) {
             value={durationMin}
             onChange={(e) => setDurationMin(Number(e.target.value))}
           />
+        </div>
+
+        {/* Course cover image */}
+        <div className="md:col-span-2">
+          <div className="rounded-2xl border border-theme bg-current/[0.02] p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+              <h3 className="text-sm font-semibold text-fg">
+                Cover image <span className="text-muted">(optional)</span>
+              </h3>
+            </div>
+            <label className="label">Image URL</label>
+            <input
+              className="input"
+              value={coverImageUrl}
+              onChange={(e) => setCoverImageUrl(e.target.value)}
+              placeholder="https://images.unsplash.com/…  or any direct image URL"
+            />
+            <p className="mt-2 text-[11px] text-muted">
+              Shown on the catalog card and at the top of the course page. Paste
+              a direct link to a JPG/PNG/WebP image (e.g. from Unsplash). Leave
+              blank to use the default gradient.
+            </p>
+            {coverImageUrl.trim() && (
+              <div className="mt-4 overflow-hidden rounded-xl border border-theme">
+                <div className="relative aspect-[16/9] w-full bg-current/[0.03]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={coverImageUrl}
+                    alt="Cover preview"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Course trailer / intro video */}
