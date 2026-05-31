@@ -13,13 +13,13 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   return (
     <Link href="/" className="group flex items-center gap-3">
       <span
-        className={`relative flex-shrink-0 overflow-hidden rounded-full shadow-lg shadow-purple/20 ring-1 ring-purple-soft/25 transition-shadow group-hover:shadow-purple/40 ${dims}`}
+        className={`relative flex-shrink-0 overflow-hidden rounded-full shadow-lg shadow-purple/25 transition-shadow group-hover:shadow-purple/40 ${dims}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-badge.png"
           alt="Koumian Academy"
-          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          className="h-full w-full scale-[1.01] object-cover transition-transform group-hover:scale-105"
         />
       </span>
       <span className="flex flex-col leading-none">
