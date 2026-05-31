@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { StudentSidebar } from "@/components/community/StudentSidebar";
-import { StudentMobileNav } from "@/components/community/StudentMobileNav";
+import { AppSidebar } from "@/components/shared/AppSidebar";
+import { AppMobileNav } from "@/components/shared/AppMobileNav";
 
 // The community portal is for approved members only. Pending/rejected users
-// are sent to /pending; logged-out users to /login.
+// are sent to /pending; logged-out users to /login. The sidebar adapts by role
+// (admins get the all-in-one Manage + Community sidebar).
 export default async function CommunityLayout({
   children,
 }: {
@@ -16,8 +17,8 @@ export default async function CommunityLayout({
 
   return (
     <div className="min-h-screen">
-      <StudentSidebar user={session.user} />
-      <StudentMobileNav />
+      <AppSidebar user={session.user} />
+      <AppMobileNav role={session.user.role} />
       <main className="lg:pl-64">
         <div className="mx-auto max-w-3xl px-5 py-8 sm:px-6 lg:py-12">
           {children}

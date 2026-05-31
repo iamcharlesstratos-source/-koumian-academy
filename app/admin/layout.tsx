@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/access";
-import { Sidebar } from "@/components/admin/Sidebar";
-import { MobileNav } from "@/components/admin/MobileNav";
+import { AppSidebar } from "@/components/shared/AppSidebar";
+import { AppMobileNav } from "@/components/shared/AppMobileNav";
 
 export default async function AdminLayout({
   children,
@@ -11,8 +11,8 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen">
-      <Sidebar user={session.user} />
-      <MobileNav />
+      <AppSidebar user={session.user} />
+      <AppMobileNav role={session.user.role} />
       <main className="lg:pl-64">
         <div className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
           {children}
