@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
-  // Bigger logo sizes than before — the philosopher mark has detail (circuits +
-  // beard) that benefits from extra display area. Using logo.png (transparent
-  // background) instead of logo.jpg so the mark blends into any theme.
+  // Uses the badged logo (philosopher on a black circular medallion). The black
+  // backdrop is baked into the image so the mark stays crisp in BOTH light and
+  // dark mode — the transparent version washed out against light backgrounds.
   const dims =
     size === "sm" ? "h-10 w-10" : size === "lg" ? "h-20 w-20" : "h-14 w-14";
   const text =
@@ -12,12 +12,14 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
     size === "sm" ? "text-[9px]" : size === "lg" ? "text-xs" : "text-[10px]";
   return (
     <Link href="/" className="group flex items-center gap-3">
-      <span className={`relative flex-shrink-0 ${dims}`}>
+      <span
+        className={`relative flex-shrink-0 overflow-hidden rounded-full shadow-lg shadow-purple/20 ring-1 ring-purple-soft/25 transition-shadow group-hover:shadow-purple/40 ${dims}`}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo.png"
+          src="/logo-badge.png"
           alt="Koumian Academy"
-          className="h-full w-full object-contain transition-transform group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform group-hover:scale-105"
         />
       </span>
       <span className="flex flex-col leading-none">
