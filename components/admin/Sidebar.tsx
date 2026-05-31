@@ -7,7 +7,7 @@ import {
   LayoutDashboard,
   Users,
   BookOpen,
-  Home,
+  Newspaper,
   LogOut,
 } from "lucide-react";
 import { Logo } from "@/components/public/Logo";
@@ -64,9 +64,9 @@ export function Sidebar({ user }: { user: AdminUser }) {
         </p>
         <ul className="space-y-0.5">
           <li>
-            <Link href="/" className="nav-item">
-              <Home className="h-4 w-4" />
-              Public homepage
+            <Link href="/community" className="nav-item">
+              <Newspaper className="h-4 w-4" />
+              Community
             </Link>
           </li>
         </ul>

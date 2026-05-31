@@ -11,9 +11,15 @@ import { Footer } from "@/components/public/Footer";
 import { StudentHome, type StudentCourse } from "@/components/student/StudentHome";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export default async function HomePage() {
   const session = await auth();
+
+  // Admins go straight to the admin dashboard — that's their home.
+  if (session?.user?.role === "admin") {
+    redirect("/admin");
+  }
 
   // ─── LOGGED-IN VIEW: Student dashboard ───
   if (session?.user) {
