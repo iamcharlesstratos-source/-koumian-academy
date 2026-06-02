@@ -12,8 +12,8 @@ import {
   Megaphone,
   Trophy,
   LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronsLeft,
+  ChevronsRight,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/public/Logo";
@@ -111,12 +111,12 @@ function CollapseToggle() {
       onClick={toggle}
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-theme-strong nav-bg text-muted backdrop-blur-sm transition-all hover:border-purple-soft/40 hover:text-fg"
+      className="collapse-toggle inline-flex h-8 w-8 items-center justify-center rounded-full border border-theme-strong nav-bg text-muted backdrop-blur-sm transition-all hover:border-purple-soft/40 hover:text-fg"
     >
       {collapsed ? (
-        <PanelLeftOpen className="h-4 w-4" />
+        <ChevronsRight className="h-4 w-4" />
       ) : (
-        <PanelLeftClose className="h-4 w-4" />
+        <ChevronsLeft className="h-4 w-4" />
       )}
     </button>
   );

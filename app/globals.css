@@ -373,4 +373,13 @@ html.sidebar-collapsed {
     padding-left: 0;
     padding-right: 0;
   }
+  /* Make the "open" arrow obvious while the sidebar is collapsed */
+  html.sidebar-collapsed .app-sidebar .collapse-toggle {
+    border-color: rgba(124, 58, 237, 0.5);
+    color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+  }
+  html.sidebar-collapsed.dark .app-sidebar .collapse-toggle {
+    color: #c084fc;
+  }
 }
