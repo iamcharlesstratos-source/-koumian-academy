@@ -72,14 +72,14 @@ export function StudentHome({
   const resume = inProgress[0] ?? notStarted[0];
 
   return (
-    <div className="px-6 pb-20 pt-8 lg:pt-12">
+    <div className="px-4 pb-24 pt-6 sm:px-6 lg:pb-12 lg:pt-12">
       <div className="mx-auto max-w-7xl">
         {/* Welcome */}
         <motion.section
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="surface relative overflow-hidden rounded-3xl border border-theme p-8 sm:p-10"
+          className="surface relative overflow-hidden rounded-3xl border border-theme p-6 sm:p-10"
         >
           <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-purple/20 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-purple-deep/20 blur-3xl" />

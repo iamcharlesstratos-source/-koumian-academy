@@ -17,8 +17,9 @@ import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: LucideIcon; exact?: boolean };
 
-// Compact bottom-tab nav for mobile. Admins get the most useful 5 tabs across
-// Manage + Community; students get the community tabs.
+// App-style mobile chrome: a slim top bar (brand + theme) and a fixed bottom
+// tab bar (the main destinations), like Facebook/Instagram. Admins get their
+// most-used 4 tabs; students get the 5 portal tabs.
 function tabsFor(role: string): Item[] {
   if (role === "admin") {
     return [
@@ -40,13 +41,17 @@ function tabsFor(role: string): Item[] {
 export function AppMobileNav({ role }: { role: string }) {
   const pathname = usePathname();
   const tabs = tabsFor(role);
+
   return (
-    <div className="sticky top-0 z-40 flex flex-col border-b border-theme nav-bg backdrop-blur-xl lg:hidden">
-      <div className="flex items-center justify-between px-5 py-4">
+    <>
+      {/* Slim top bar */}
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-theme nav-bg px-4 py-3 backdrop-blur-xl lg:hidden">
         <Logo size="sm" />
         <ThemeToggle compact />
-      </div>
-      <nav className="flex border-t border-theme">
+      </header>
+
+      {/* Fixed bottom tab bar */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-theme nav-bg pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
         {tabs.map((item) => {
           const active = item.exact
             ? pathname === item.href
@@ -56,18 +61,26 @@ export function AppMobileNav({ role }: { role: string }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-1 px-2 py-2.5 text-[10px] font-medium transition-colors",
+                "relative flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition-colors",
                 active
-                  ? "text-purple-700 dark:text-purple-200 [box-shadow:inset_0_-2px_0_0_#7c3aed]"
+                  ? "text-purple-700 dark:text-purple-200"
                   : "text-muted hover:text-fg"
               )}
             >
-              <item.icon className="h-4 w-4" />
+              {active && (
+                <span className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-purple" />
+              )}
+              <item.icon
+                className={cn(
+                  "h-5 w-5",
+                  active && "drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]"
+                )}
+              />
               {item.label}
             </Link>
           );
         })}
       </nav>
-    </div>
+    </>
   );
 }

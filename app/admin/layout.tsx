@@ -14,7 +14,7 @@ export default async function AdminLayout({
       <AppSidebar user={session.user} />
       <AppMobileNav role={session.user.role} />
       <main className="app-main">
-        <div className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
+        <div className="mx-auto max-w-6xl px-6 pb-24 pt-8 lg:px-10 lg:py-10">
           {children}
         </div>
       </main>
