@@ -1,29 +1,47 @@
 import Link from "next/link";
-import { Users, BookOpen, GraduationCap, Clock, Plus } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  GraduationCap,
+  Activity,
+  CheckCircle2,
+  Plus,
+  TrendingUp,
+  Newspaper,
+  MessageCircle,
+  Megaphone,
+} from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { StatCard } from "@/components/admin/StatCard";
 
+const DAY = 24 * 60 * 60 * 1000;
+
+function fmtDate(ts: number) {
+  return new Date(ts).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export default async function AdminDashboard() {
+  const now = Date.now();
+  const cutoff30 = new Date(now - 30 * DAY);
+
   const [
-    totalUsers,
-    pendingUsers,
-    approvedUsers,
-    totalCourses,
-    publishedCourses,
-    totalLessons,
-    totalEnrollments,
+    usersAll,
     recentSignups,
+    courses,
+    publishedLessons,
+    enrollments,
+    completions,
+    totalPosts,
+    totalComments,
+    totalAnnouncements,
   ] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { status: "pending" } }),
-    prisma.user.count({ where: { status: "approved" } }),
-    prisma.course.count(),
-    prisma.course.count({ where: { published: true } }),
-    prisma.lesson.count(),
-    prisma.enrollment.count(),
+    prisma.user.findMany({ select: { createdAt: true, status: true } }),
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 6,
       select: {
         id: true,
         name: true,
@@ -33,22 +51,97 @@ export default async function AdminDashboard() {
         createdAt: true,
       },
     }),
+    prisma.course.findMany({
+      where: { published: true },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, title: true, category: true },
+    }),
+    prisma.lesson.findMany({
+      where: { published: true },
+      select: { id: true, courseId: true },
+    }),
+    prisma.enrollment.findMany({ select: { courseId: true } }),
+    prisma.lessonCompletion.findMany({
+      select: { lessonId: true, userId: true, completedAt: true },
+    }),
+    prisma.post.count(),
+    prisma.comment.count(),
+    prisma.announcement.count(),
   ]);
 
+  // ─── Member stats ───
+  const totalUsers = usersAll.length;
+  const approvedUsers = usersAll.filter((u) => u.status === "approved").length;
+  const pendingUsers = usersAll.filter((u) => u.status === "pending").length;
+  const rejectedUsers = usersAll.filter((u) => u.status === "rejected").length;
   const approvalRate = totalUsers > 0 ? (approvedUsers / totalUsers) * 100 : 0;
+
+  // ─── Lesson / course maps ───
+  const lessonToCourse = new Map(publishedLessons.map((l) => [l.id, l.courseId]));
+  const lessonsPerCourse = new Map<string, number>();
+  for (const l of publishedLessons) {
+    lessonsPerCourse.set(l.courseId, (lessonsPerCourse.get(l.courseId) ?? 0) + 1);
+  }
+  const enrollPerCourse = new Map<string, number>();
+  for (const e of enrollments) {
+    enrollPerCourse.set(e.courseId, (enrollPerCourse.get(e.courseId) ?? 0) + 1);
+  }
+  const completionsPerCourse = new Map<string, number>();
+  for (const c of completions) {
+    const courseId = lessonToCourse.get(c.lessonId);
+    if (!courseId) continue;
+    completionsPerCourse.set(
+      courseId,
+      (completionsPerCourse.get(courseId) ?? 0) + 1
+    );
+  }
+
+  const totalCompletions = completions.length;
+  const totalEnrollments = enrollments.length;
+  const activeLearners = new Set(
+    completions.filter((c) => c.completedAt >= cutoff30).map((c) => c.userId)
+  ).size;
+
+  // ─── Course performance (sorted by enrolled, then completions) ───
+  const coursePerf = courses
+    .map((c) => {
+      const enrolled = enrollPerCourse.get(c.id) ?? 0;
+      const lessons = lessonsPerCourse.get(c.id) ?? 0;
+      const done = completionsPerCourse.get(c.id) ?? 0;
+      const possible = enrolled * lessons;
+      const pct = possible > 0 ? Math.min(100, Math.round((done / possible) * 100)) : null;
+      return { ...c, enrolled, lessons, done, pct };
+    })
+    .sort((a, b) => b.enrolled - a.enrolled || b.done - a.done);
+
+  // ─── Signups over the last 8 weeks (rolling) ───
+  const WEEK = 7 * DAY;
+  const weekBuckets = Array.from({ length: 8 }, (_, i) => {
+    const weeksAgo = 7 - i;
+    const repTs = now - weeksAgo * WEEK;
+    return { label: fmtDate(repTs), count: 0 };
+  });
+  for (const u of usersAll) {
+    const weeksAgo = Math.floor((now - u.createdAt.getTime()) / WEEK);
+    if (weeksAgo >= 0 && weeksAgo < 8) {
+      weekBuckets[7 - weeksAgo].count += 1;
+    }
+  }
+  const maxWeek = Math.max(1, ...weekBuckets.map((b) => b.count));
+  const signups8w = weekBuckets.reduce((s, b) => s + b.count, 0);
 
   return (
     <>
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-1 text-xs font-medium uppercase tracking-[0.25em] text-purple-600 dark:text-purple-300">
-            Overview
+            Analytics
           </p>
           <h1 className="text-3xl font-semibold tracking-tight text-fg">
             Dashboard
           </h1>
           <p className="mt-2 text-sm text-muted">
-            High-level view of users, courses, and activity.
+            Members, learning activity, and community health at a glance.
           </p>
         </div>
         <Link href="/admin/courses/new" className="btn-primary">
@@ -57,35 +150,190 @@ export default async function AdminDashboard() {
         </Link>
       </header>
 
+      {/* KPI cards */}
       <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total members"
-          value={totalUsers}
+          label="Approved members"
+          value={approvedUsers}
           icon={Users}
           progress={approvalRate}
-          trend={`${approvedUsers} approved`}
+          trend={pendingUsers > 0 ? `${pendingUsers} pending review` : "All reviewed"}
         />
         <StatCard
-          label="Pending review"
-          value={pendingUsers}
-          icon={Clock}
-          trend={pendingUsers === 0 ? "All clear" : "Action needed"}
+          label="Active learners"
+          value={activeLearners}
+          icon={Activity}
+          trend="completed a lesson · 30d"
         />
         <StatCard
-          label="Courses"
-          value={totalCourses}
+          label="Published courses"
+          value={courses.length}
           icon={BookOpen}
-          trend={`${publishedCourses} published`}
+          trend={`${totalEnrollments} course unlocks`}
         />
         <StatCard
-          label="Course unlocks"
-          value={totalEnrollments}
-          icon={GraduationCap}
-          trend={`${totalLessons} lessons total`}
+          label="Lessons completed"
+          value={totalCompletions}
+          icon={CheckCircle2}
+          trend={`${publishedLessons.length} lessons live`}
         />
       </section>
 
-      <section className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      {/* Signups trend + member breakdown */}
+      <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="surface rounded-2xl border border-theme p-6 backdrop-blur-sm lg:col-span-2">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-fg">
+                <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+                New signups
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                Last 8 weeks · {signups8w} total
+              </p>
+            </div>
+          </div>
+
+          {totalUsers === 0 ? (
+            <p className="rounded-lg border border-dashed border-theme-strong px-4 py-10 text-center text-sm text-muted">
+              No signups yet. New members will chart here.
+            </p>
+          ) : (
+            <div className="flex h-40 items-end justify-between gap-2">
+              {weekBuckets.map((b, i) => (
+                <div
+                  key={i}
+                  className="group flex flex-1 flex-col items-center gap-2"
+                >
+                  <div className="flex w-full flex-1 items-end">
+                    <div
+                      className="relative w-full rounded-t-md bg-gradient-to-t from-purple-deep to-purple transition-all duration-500 hover:opacity-90"
+                      style={{
+                        height: `${b.count > 0 ? Math.max(8, (b.count / maxWeek) * 100) : 2}%`,
+                      }}
+                    >
+                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[11px] font-medium text-fg opacity-0 transition-opacity group-hover:opacity-100">
+                        {b.count}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] uppercase tracking-wide text-muted">
+                    {b.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="surface rounded-2xl border border-theme p-6 backdrop-blur-sm">
+          <h2 className="mb-5 text-lg font-semibold text-fg">Members by status</h2>
+          <div className="space-y-4">
+            <StatusBar
+              label="Approved"
+              count={approvedUsers}
+              total={totalUsers}
+              color="bg-emerald-500"
+            />
+            <StatusBar
+              label="Pending"
+              count={pendingUsers}
+              total={totalUsers}
+              color="bg-amber-500"
+            />
+            <StatusBar
+              label="Rejected"
+              count={rejectedUsers}
+              total={totalUsers}
+              color="bg-rose-500"
+            />
+          </div>
+
+          <hr className="my-5 border-theme" />
+
+          <h3 className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">
+            Community activity
+          </h3>
+          <div className="grid grid-cols-3 gap-2">
+            <MiniStat icon={Newspaper} value={totalPosts} label="Posts" />
+            <MiniStat icon={MessageCircle} value={totalComments} label="Comments" />
+            <MiniStat icon={Megaphone} value={totalAnnouncements} label="News" />
+          </div>
+        </div>
+      </section>
+
+      {/* Course performance */}
+      <section className="mt-6 surface rounded-2xl border border-theme p-6 backdrop-blur-sm">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-fg">Course performance</h2>
+          <Link
+            href="/admin/courses"
+            className="text-xs text-purple-600 transition-colors hover:opacity-80 dark:text-purple-300"
+          >
+            Manage courses →
+          </Link>
+        </div>
+
+        {coursePerf.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-theme-strong px-4 py-10 text-center text-sm text-muted">
+            No published courses yet. Create one to start tracking engagement.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-theme text-left text-[10px] uppercase tracking-wider text-muted">
+                  <th className="pb-3 font-medium">Course</th>
+                  <th className="pb-3 text-center font-medium">Enrolled</th>
+                  <th className="pb-3 text-center font-medium">Lessons</th>
+                  <th className="pb-3 text-center font-medium">Done</th>
+                  <th className="hidden pb-3 font-medium sm:table-cell">Completion</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-current/5">
+                {coursePerf.map((c) => (
+                  <tr key={c.id}>
+                    <td className="py-3 pr-3">
+                      <Link
+                        href={`/admin/courses/${c.id}`}
+                        className="font-medium text-fg transition-colors hover:text-purple-600 dark:hover:text-purple-300"
+                      >
+                        {c.title}
+                      </Link>
+                      <div className="text-[10px] uppercase tracking-wider text-muted">
+                        {c.category}
+                      </div>
+                    </td>
+                    <td className="py-3 text-center text-fg">{c.enrolled}</td>
+                    <td className="py-3 text-center text-muted">{c.lessons}</td>
+                    <td className="py-3 text-center text-muted">{c.done}</td>
+                    <td className="hidden py-3 sm:table-cell">
+                      {c.pct === null ? (
+                        <span className="text-xs text-muted">—</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-current/10">
+                            <div
+                              className="h-full rounded-full bg-purple"
+                              style={{ width: `${c.pct}%` }}
+                            />
+                          </div>
+                          <span className="w-9 text-right text-xs text-fg">
+                            {c.pct}%
+                          </span>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Recent signups + quick actions */}
+      <section className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="surface rounded-2xl border border-theme p-6 backdrop-blur-sm lg:col-span-2">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-fg">Recent signups</h2>
@@ -103,10 +351,7 @@ export default async function AdminDashboard() {
           ) : (
             <ul className="divide-y divide-current/5">
               {recentSignups.map((u) => (
-                <li
-                  key={u.id}
-                  className="flex items-center justify-between py-3"
-                >
+                <li key={u.id} className="flex items-center justify-between py-3">
                   <div className="flex min-w-0 items-center gap-3">
                     {u.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -125,9 +370,7 @@ export default async function AdminDashboard() {
                       <div className="truncate text-sm text-fg">
                         {u.name ?? "Unknown"}
                       </div>
-                      <div className="truncate text-xs text-muted">
-                        {u.email}
-                      </div>
+                      <div className="truncate text-xs text-muted">{u.email}</div>
                     </div>
                   </div>
                   <StatusPill status={u.status} />
@@ -176,6 +419,57 @@ export default async function AdminDashboard() {
         </div>
       </section>
     </>
+  );
+}
+
+function StatusBar({
+  label,
+  count,
+  total,
+  color,
+}: {
+  label: string;
+  count: number;
+  total: number;
+  color: string;
+}) {
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  return (
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between text-xs">
+        <span className="text-muted">{label}</span>
+        <span className="text-fg">
+          <span className="font-medium">{count}</span>{" "}
+          <span className="text-muted">({pct}%)</span>
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-current/10">
+        <div
+          className={`h-full rounded-full ${color} transition-all duration-500`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({
+  icon: Icon,
+  value,
+  label,
+}: {
+  icon: typeof Newspaper;
+  value: number;
+  label: string;
+}) {
+  return (
+    <div className="rounded-xl border border-theme bg-current/[0.02] p-3 text-center">
+      <Icon className="mx-auto h-4 w-4 text-purple-600 dark:text-purple-300" />
+      <div className="mt-1.5 text-lg font-semibold text-fg">{value}</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted">
+        {label}
+      </div>
+    </div>
   );
 }
 
