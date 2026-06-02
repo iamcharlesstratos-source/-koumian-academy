@@ -2,12 +2,14 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/public/ThemeToggle";
+import { headers } from "next/headers";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 import { CredentialsForm } from "./CredentialsForm";
 import { InAppBrowserNotice } from "@/components/public/InAppBrowserNotice";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { safeCallbackUrl } from "@/lib/utils";
+import { isInAppBrowser } from "@/lib/browser";
 
 export default async function LoginPage({
   searchParams,
@@ -19,6 +21,10 @@ export default async function LoginPage({
   if (session?.user) {
     redirect(callbackUrl);
   }
+
+  // Google OAuth is blocked inside in-app browsers (Messenger/FB/IG/TikTok).
+  // There, hide the Google button and steer users to email + password.
+  const inApp = isInAppBrowser(headers().get("user-agent") ?? "");
 
   return (
     <main className="relative flex min-h-screen items-center justify-center px-6 py-16">
@@ -47,19 +53,30 @@ export default async function LoginPage({
           </p>
 
           <div className="mt-7">
-            <InAppBrowserNotice />
+            {inApp && <InAppBrowserNotice />}
             <CredentialsForm callbackUrl={callbackUrl} />
           </div>
 
-          <div className="my-7 flex items-center gap-3">
-            <span className="h-px flex-1 bg-current opacity-10" />
-            <span className="text-[10px] uppercase tracking-[0.2em] text-muted">
-              or
-            </span>
-            <span className="h-px flex-1 bg-current opacity-10" />
-          </div>
+          {inApp ? (
+            <p className="mt-6 text-center text-xs text-muted">
+              Gusto mong gumamit ng Google? Buksan ang site sa{" "}
+              <strong className="text-fg">Safari</strong> o{" "}
+              <strong className="text-fg">Chrome</strong> (i-tap ang ••• sa
+              taas → Open in browser).
+            </p>
+          ) : (
+            <>
+              <div className="my-7 flex items-center gap-3">
+                <span className="h-px flex-1 bg-current opacity-10" />
+                <span className="text-[10px] uppercase tracking-[0.2em] text-muted">
+                  or
+                </span>
+                <span className="h-px flex-1 bg-current opacity-10" />
+              </div>
 
-          <GoogleSignInButton callbackUrl={callbackUrl} />
+              <GoogleSignInButton callbackUrl={callbackUrl} />
+            </>
+          )}
         </div>
 
         <p className="mt-6 text-center text-sm text-muted">
