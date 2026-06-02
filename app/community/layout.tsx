@@ -19,7 +19,7 @@ export default async function CommunityLayout({
     <div className="min-h-screen">
       <AppSidebar user={session.user} />
       <AppMobileNav role={session.user.role} />
-      <main className="lg:pl-64">
+      <main className="app-main">
         <div className="mx-auto max-w-3xl px-5 py-8 sm:px-6 lg:py-12">
           {children}
         </div>

@@ -316,3 +316,61 @@
     print-color-adjust: exact !important;
   }
 }
+
+/* ─── Collapsible app sidebar ───
+ * The collapsed state is a class on <html> (set pre-hydration by an inline
+ * script, like the theme). A single CSS variable drives BOTH the sidebar width
+ * and the main-content padding, so toggling animates smoothly and navigating
+ * between pages never causes a layout jump. Mobile is unaffected (it uses the
+ * top tab-bar; the sidebar is hidden below lg).
+ */
+:root {
+  --sidebar-w: 16rem; /* 64 */
+}
+html.sidebar-collapsed {
+  --sidebar-w: 4.75rem; /* icon rail */
+}
+
+@media (min-width: 1024px) {
+  .app-sidebar {
+    width: var(--sidebar-w);
+    transition: width 0.25s ease;
+  }
+  .app-main {
+    padding-left: var(--sidebar-w);
+    transition: padding-left 0.25s ease;
+  }
+
+  /* Collapsed visuals */
+  html.sidebar-collapsed .app-sidebar .logo-text,
+  html.sidebar-collapsed .app-sidebar .sidebar-label,
+  html.sidebar-collapsed .app-sidebar .sidebar-heading,
+  html.sidebar-collapsed .app-sidebar .sidebar-usermeta {
+    display: none;
+  }
+  html.sidebar-collapsed .app-sidebar .sidebar-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  html.sidebar-collapsed .app-sidebar .sidebar-toggles {
+    flex-direction: column;
+  }
+  html.sidebar-collapsed .app-sidebar .nav-item {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  html.sidebar-collapsed .app-sidebar .nav-group + .nav-group {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+  html.sidebar-collapsed .app-sidebar .sidebar-user-row {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

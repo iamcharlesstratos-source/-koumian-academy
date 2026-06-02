@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -10,8 +11,9 @@ import {
   Newspaper,
   Megaphone,
   Trophy,
-  Home,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/public/Logo";
@@ -29,7 +31,9 @@ type NavItem = { href: string; label: string; icon: LucideIcon; exact?: boolean 
 type NavGroup = { heading: string; items: NavItem[] };
 
 // Build the nav groups based on role. Admins get an all-in-one sidebar:
-// MANAGE (admin tools) + COMMUNITY + quick links. Students get community only.
+// MANAGE (admin tools) + COMMUNITY + quick links. Students get a Facebook-style
+// portal: My Dashboard at the very top, then Community, then Courses. No admin
+// (confidential) tools are ever shown to students.
 function buildGroups(role: string): NavGroup[] {
   const isAdmin = role === "admin";
 
@@ -55,20 +59,67 @@ function buildGroups(role: string): NavGroup[] {
       community,
       {
         heading: "Quick links",
-        items: [
-          { href: "/courses", label: "Course catalog", icon: BookOpen },
-        ],
+        items: [{ href: "/courses", label: "Course catalog", icon: BookOpen }],
       },
     ];
   }
 
+  // Student portal — My Dashboard pinned to the top.
   return [
-    { ...community, items: [...community.items, { href: "/courses", label: "Courses", icon: BookOpen }] },
     {
-      heading: "Quick links",
-      items: [{ href: "/", label: "My dashboard", icon: Home, exact: true }],
+      heading: "Menu",
+      items: [
+        { href: "/dashboard", label: "My Dashboard", icon: LayoutDashboard, exact: true },
+      ],
+    },
+    community,
+    {
+      heading: "Learn",
+      items: [{ href: "/courses", label: "Courses", icon: BookOpen }],
     },
   ];
+}
+
+// Collapse/expand toggle. The collapsed state lives as a class on <html>
+// (set pre-hydration by an inline script in layout.tsx), so the sidebar width
+// and the main content padding are driven entirely by CSS — no layout flash on
+// load and no jump when navigating between pages.
+function CollapseToggle() {
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    setCollapsed(
+      document.documentElement.classList.contains("sidebar-collapsed")
+    );
+  }, []);
+
+  const toggle = () => {
+    const el = document.documentElement;
+    const next = !el.classList.contains("sidebar-collapsed");
+    el.classList.toggle("sidebar-collapsed", next);
+    try {
+      localStorage.setItem("koumian-sidebar", next ? "collapsed" : "expanded");
+    } catch {
+      /* localStorage may be blocked */
+    }
+    setCollapsed(next);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-theme-strong nav-bg text-muted backdrop-blur-sm transition-all hover:border-purple-soft/40 hover:text-fg"
+    >
+      {collapsed ? (
+        <PanelLeftOpen className="h-4 w-4" />
+      ) : (
+        <PanelLeftClose className="h-4 w-4" />
+      )}
+    </button>
+  );
 }
 
 export function AppSidebar({ user }: { user: AppUser }) {
@@ -79,16 +130,19 @@ export function AppSidebar({ user }: { user: AppUser }) {
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-theme nav-bg backdrop-blur-xl lg:flex">
-      <div className="flex items-center justify-between px-6 py-7">
+    <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border-r border-theme nav-bg backdrop-blur-xl lg:flex">
+      <div className="sidebar-header flex items-center justify-between px-6 py-7">
         <Logo size="sm" />
-        <ThemeToggle compact />
+        <div className="sidebar-toggles flex items-center gap-1.5">
+          <ThemeToggle compact />
+          <CollapseToggle />
+        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin">
         {groups.map((group) => (
-          <div key={group.heading}>
-            <p className="px-3 pb-2 pt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
+          <div key={group.heading} className="nav-group">
+            <p className="sidebar-heading px-3 pb-2 pt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
               {group.heading}
             </p>
             <ul className="space-y-0.5">
@@ -96,10 +150,11 @@ export function AppSidebar({ user }: { user: AppUser }) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    title={item.label}
                     className={cn("nav-item", isActive(item) && "nav-item-active")}
                   >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
+                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="sidebar-label">{item.label}</span>
                   </Link>
                 </li>
               ))}
@@ -108,22 +163,22 @@ export function AppSidebar({ user }: { user: AppUser }) {
         ))}
       </nav>
 
-      <div className="border-t border-theme p-3">
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2.5">
+      <div className="sidebar-footer border-t border-theme p-3">
+        <div className="sidebar-user-row flex items-center gap-3 rounded-lg px-3 py-2.5">
           {user.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.image}
               alt=""
               referrerPolicy="no-referrer"
-              className="h-9 w-9 rounded-full"
+              className="h-9 w-9 flex-shrink-0 rounded-full"
             />
           ) : (
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-purple/15 text-sm text-purple-700 dark:text-purple-200">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-purple/15 text-sm text-purple-700 dark:text-purple-200">
               {user.name?.[0]?.toUpperCase() ?? "?"}
             </span>
           )}
-          <div className="min-w-0 flex-1">
+          <div className="sidebar-usermeta min-w-0 flex-1">
             <div className="truncate text-sm text-fg">{user.name}</div>
             <div className="truncate text-xs text-muted">{user.email}</div>
           </div>
@@ -131,10 +186,11 @@ export function AppSidebar({ user }: { user: AppUser }) {
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/" })}
+          title="Sign out"
           className="nav-item mt-1 w-full text-left"
         >
-          <LogOut className="h-4 w-4" />
-          Sign out
+          <LogOut className="h-4 w-4 flex-shrink-0" />
+          <span className="sidebar-label">Sign out</span>
         </button>
       </div>
     </aside>

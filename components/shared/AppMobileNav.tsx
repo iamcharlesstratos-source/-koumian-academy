@@ -29,6 +29,7 @@ function tabsFor(role: string): Item[] {
     ];
   }
   return [
+    { href: "/dashboard", label: "Home", icon: LayoutDashboard, exact: true },
     { href: "/community", label: "Feed", icon: Newspaper, exact: true },
     { href: "/community/announcements", label: "News", icon: Megaphone },
     { href: "/community/wins", label: "Wins", icon: Trophy },

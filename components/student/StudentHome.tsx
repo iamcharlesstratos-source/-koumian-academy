@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   BookOpen,
-  Sparkles,
+  Newspaper,
   Trophy,
   Clock,
   PlayCircle,
@@ -72,7 +72,7 @@ export function StudentHome({
   const resume = inProgress[0] ?? notStarted[0];
 
   return (
-    <main className="px-6 pb-20 pt-28 sm:pt-32">
+    <div className="px-6 pb-20 pt-8 lg:pt-12">
       <div className="mx-auto max-w-7xl">
         {/* Welcome */}
         <motion.section
@@ -233,15 +233,15 @@ export function StudentHome({
             />
           ) : (
             <ActionCard
-              href="/#about"
-              icon={Sparkles}
-              title="About Koumian"
-              body="Read the story behind the academy."
+              href="/community"
+              icon={Newspaper}
+              title="Community feed"
+              body="Share wins and connect with members."
             />
           )}
         </section>
       </div>
-    </main>
+    </div>
   );
 }
 

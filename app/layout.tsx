@@ -32,6 +32,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
 };
 
+// Applies the saved sidebar collapsed state synchronously, before hydration,
+// so there's no flash/jump of the sidebar width or content padding on load.
+const sidebarBootstrapScript = `
+(function(){
+  try {
+    if (localStorage.getItem('koumian-sidebar') === 'collapsed') {
+      document.documentElement.classList.add('sidebar-collapsed');
+    }
+  } catch(e){}
+})();
+`;
+
 export default function RootLayout({
   children,
 }: {
@@ -42,6 +54,9 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
+        />
+        <script
+          dangerouslySetInnerHTML={{ __html: sidebarBootstrapScript }}
         />
       </head>
       <body className="font-sans antialiased">

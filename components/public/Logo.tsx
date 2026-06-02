@@ -22,7 +22,7 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
           className="h-full w-full scale-[1.01] object-cover transition-transform group-hover:scale-105"
         />
       </span>
-      <span className="flex flex-col leading-none">
+      <span className="logo-text flex flex-col leading-none">
         <span className={`font-semibold tracking-tight text-fg ${text}`}>
           Koumian
         </span>

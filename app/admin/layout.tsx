@@ -13,7 +13,7 @@ export default async function AdminLayout({
     <div className="min-h-screen">
       <AppSidebar user={session.user} />
       <AppMobileNav role={session.user.role} />
-      <main className="lg:pl-64">
+      <main className="app-main">
         <div className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
           {children}
         </div>
