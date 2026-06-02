@@ -4,6 +4,7 @@ import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/public/ThemeToggle";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 import { CredentialsForm } from "./CredentialsForm";
+import { InAppBrowserNotice } from "@/components/public/InAppBrowserNotice";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { safeCallbackUrl } from "@/lib/utils";
@@ -46,6 +47,7 @@ export default async function LoginPage({
           </p>
 
           <div className="mt-7">
+            <InAppBrowserNotice />
             <CredentialsForm callbackUrl={callbackUrl} />
           </div>
 
