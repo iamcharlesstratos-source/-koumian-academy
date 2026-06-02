@@ -15,6 +15,44 @@ import { authConfig } from "./auth.config";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
+  callbacks: {
+    ...authConfig.callbacks,
+    /**
+     * Runs in the Node runtime (server components, actions, route handlers),
+     * where Prisma is available. On initial sign-in we snapshot role/status
+     * from the authorized user. On EVERY subsequent request we re-read
+     * role/status from the database, so admin changes (approval, role,
+     * rejection) take effect immediately — the user does NOT have to log out
+     * and back in. The Edge middleware keeps using the lightweight callback in
+     * auth.config.ts (no DB) and only checks "is logged in".
+     */
+    async jwt({ token, user }) {
+      if (user) {
+        const u = user as { role?: string; status?: string; id?: string };
+        token.role = u.role ?? "user";
+        token.status = u.status ?? "pending";
+        token.uid = u.id;
+        return token;
+      }
+
+      const uid = (token.uid as string) ?? (token.sub as string);
+      if (uid) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: uid },
+            select: { role: true, status: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.status = dbUser.status;
+          }
+        } catch {
+          // If the lookup fails, keep the existing token values.
+        }
+      }
+      return token;
+    },
+  },
   providers: [
     ...authConfig.providers,
     Credentials({

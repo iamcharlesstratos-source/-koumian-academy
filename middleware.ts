@@ -20,24 +20,16 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // Not signed in → redirect to /login
+  // Middleware only does the fast "is this person logged in?" check at the
+  // edge. Role (admin) and approval (status) are enforced in the server
+  // components/layouts using a FRESH database read — see auth.ts's jwt
+  // callback. Doing it there (not here) means an admin's approval or role
+  // change takes effect immediately, without the user re-logging in. The JWT
+  // in the cookie can be stale; we no longer trust it for role/status gating.
   if (!session?.user) {
     const loginUrl = new URL("/login", nextUrl);
     loginUrl.searchParams.set("callbackUrl", path);
     return NextResponse.redirect(loginUrl);
-  }
-
-  // Admin routes require role=admin
-  if (isAdminRoute && session.user.role !== "admin") {
-    return NextResponse.redirect(new URL("/pending", nextUrl));
-  }
-
-  // Lesson + community routes require account approval
-  if (
-    (isLessonRoute || isCommunityRoute) &&
-    session.user.status !== "approved"
-  ) {
-    return NextResponse.redirect(new URL("/pending", nextUrl));
   }
 
   return NextResponse.next();
