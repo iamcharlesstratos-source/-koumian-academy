@@ -35,6 +35,23 @@ model User {
   postLikes     PostLike[]
   announcements Announcement[]
   comments      Comment[]
+  notifications Notification[]
+}
+
+// ─── In-app notifications (no email) ───
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String // recipient
+  type      String // "approval" | "comment" | "enrollment" | "announcement" | "system"
+  title     String
+  body      String?
+  link      String? // in-app path to open when clicked
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
 }
 
 // ─── Community: feed posts & "big wins" (students post, admin moderates) ───

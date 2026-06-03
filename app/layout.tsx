@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import {
@@ -6,6 +6,7 @@ import {
   themeBootstrapScript,
 } from "@/components/public/ThemeProvider";
 import { Toaster } from "@/components/public/Toaster";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -30,6 +31,16 @@ export const metadata: Metadata = {
   description:
     "A premium course library for business, marketing, and finance. Learn from carefully crafted programs designed to elevate your craft.",
   metadataBase: new URL(siteUrl),
+  applicationName: "Koumian Academy",
+  appleWebApp: {
+    capable: true,
+    title: "Koumian",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0F0F14",
 };
 
 // Applies the saved sidebar collapsed state synchronously, before hydration,
@@ -63,6 +74,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
           <Toaster />
+          <ServiceWorkerRegister />
         </ThemeProvider>
       </body>
     </html>

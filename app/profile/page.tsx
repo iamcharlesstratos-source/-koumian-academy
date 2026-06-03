@@ -18,6 +18,7 @@ import {
   Newspaper,
   Flame,
   Medal,
+  Star,
   MessageCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -26,6 +27,7 @@ import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/public/Nav";
 import { Footer } from "@/components/public/Footer";
 import { formatDuration, timeAgo } from "@/lib/utils";
+import { computeStreak, POINTS } from "@/lib/gamification";
 
 export const metadata = { title: "My Profile — Koumian Academy" };
 
@@ -57,10 +59,10 @@ export default async function ProfilePage() {
   const allLessonIds = enrolledCourses.flatMap((c) => c.lessons.map((l) => l.id));
   const [completions, myPosts, myCommentCount] = await Promise.all([
     allLessonIds.length === 0
-      ? Promise.resolve([] as { lessonId: string }[])
+      ? Promise.resolve([] as { lessonId: string; completedAt: Date }[])
       : prisma.lessonCompletion.findMany({
           where: { userId: user.id, lessonId: { in: allLessonIds } },
-          select: { lessonId: true },
+          select: { lessonId: true, completedAt: true },
         }),
     prisma.post.findMany({
       where: { authorId: user.id },
@@ -91,6 +93,13 @@ export default async function ProfilePage() {
 
   const feedCount = myPosts.filter((p) => p.type === "feed").length;
   const winCount = myPosts.filter((p) => p.type === "win").length;
+
+  const points =
+    lessonsCompleted * POINTS.lesson +
+    winCount * POINTS.win +
+    feedCount * POINTS.post +
+    myCommentCount * POINTS.comment;
+  const streak = computeStreak(completions.map((c) => c.completedAt));
 
   const badges: {
     label: string;
@@ -139,6 +148,30 @@ export default async function ProfilePage() {
             <StatTile icon={Award} value={finishedCourses.length} label="Certificates" />
             <StatTile icon={TrendingUp} value={`${overallPct}%`} label="Overall progress" />
           </section>
+
+          {isActive && (
+            <section className="surface mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-theme p-5">
+              <div className="flex items-center gap-6">
+                <span className="flex items-center gap-2 text-sm text-fg">
+                  <Flame className="h-5 w-5 text-amber-500 dark:text-amber-300" />
+                  <span className="font-semibold">{streak}</span>
+                  <span className="text-muted">day streak</span>
+                </span>
+                <span className="flex items-center gap-2 text-sm text-fg">
+                  <Star className="h-5 w-5 text-purple-500 dark:text-purple-300" />
+                  <span className="font-semibold">{points}</span>
+                  <span className="text-muted">points</span>
+                </span>
+              </div>
+              <Link
+                href="/community/leaderboard"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-600 transition-colors hover:opacity-80 dark:text-purple-300"
+              >
+                <Medal className="h-4 w-4" />
+                View leaderboard →
+              </Link>
+            </section>
+          )}
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[340px_1fr]">
             {/* Identity card */}

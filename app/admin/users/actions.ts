@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/access";
+import { notify } from "@/lib/notify";
 
 export async function setUserStatus(userId: string, status: string) {
   await requireAdmin();
@@ -15,6 +16,14 @@ export async function setUserStatus(userId: string, status: string) {
     where: { id: userId },
     data: { status },
   });
+  if (status === "approved") {
+    await notify(userId, {
+      type: "approval",
+      title: "Your account is approved 🎉",
+      body: "You now have full access to the community and your courses.",
+      link: "/community",
+    });
+  }
   revalidatePath("/admin/users");
   revalidatePath("/admin");
 }
@@ -36,11 +45,25 @@ export async function setUserRole(userId: string, role: string) {
 
 export async function grantCourseAccess(userId: string, courseId: string) {
   await requireAdmin();
-  await prisma.enrollment.upsert({
+  const existing = await prisma.enrollment.findUnique({
     where: { userId_courseId: { userId, courseId } },
-    create: { userId, courseId },
-    update: {},
+    select: { id: true },
   });
+  if (!existing) {
+    await prisma.enrollment.create({ data: { userId, courseId } });
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { title: true, slug: true },
+    });
+    if (course) {
+      await notify(userId, {
+        type: "enrollment",
+        title: `New course unlocked: ${course.title}`,
+        body: "You now have access — start learning anytime.",
+        link: `/courses/${course.slug}`,
+      });
+    }
+  }
   revalidatePath("/admin/users");
 }
 

@@ -4,16 +4,13 @@ import { AppSidebar } from "@/components/shared/AppSidebar";
 import { AppMobileNav } from "@/components/shared/AppMobileNav";
 import { getUnreadCount } from "@/lib/notify";
 
-// The student dashboard lives inside the same sidebar shell as the community
-// portal. Login is required; pending/rejected users are allowed here so they
-// can see their account status (the dashboard renders the right notice).
-export default async function DashboardLayout({
+export default async function NotificationsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/login?callbackUrl=/dashboard");
+  if (!session?.user) redirect("/login?callbackUrl=/notifications");
 
   const unread = await getUnreadCount(session.user.id);
 
@@ -21,7 +18,11 @@ export default async function DashboardLayout({
     <div className="min-h-screen">
       <AppSidebar user={session.user} unreadCount={unread} />
       <AppMobileNav role={session.user.role} unreadCount={unread} />
-      <main className="app-main">{children}</main>
+      <main className="app-main">
+        <div className="mx-auto max-w-3xl px-5 pb-24 pt-6 sm:px-6 lg:py-12">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

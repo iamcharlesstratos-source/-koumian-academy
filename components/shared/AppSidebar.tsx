@@ -11,8 +11,10 @@ import {
   Newspaper,
   Megaphone,
   Trophy,
+  Medal,
   LogOut,
   Settings,
+  Bell,
   ChevronsLeft,
   ChevronsRight,
   type LucideIcon,
@@ -44,6 +46,7 @@ function buildGroups(role: string): NavGroup[] {
       { href: "/community", label: "Feed", icon: Newspaper, exact: true },
       { href: "/community/announcements", label: "Announcements", icon: Megaphone },
       { href: "/community/wins", label: "Big Wins", icon: Trophy },
+      { href: "/community/leaderboard", label: "Leaderboard", icon: Medal },
     ],
   };
 
@@ -123,7 +126,13 @@ function CollapseToggle() {
   );
 }
 
-export function AppSidebar({ user }: { user: AppUser }) {
+export function AppSidebar({
+  user,
+  unreadCount = 0,
+}: {
+  user: AppUser;
+  unreadCount?: number;
+}) {
   const pathname = usePathname();
   const groups = buildGroups(user.role);
 
@@ -135,6 +144,19 @@ export function AppSidebar({ user }: { user: AppUser }) {
       <div className="sidebar-header flex items-center justify-between px-6 py-7">
         <Logo size="sm" />
         <div className="sidebar-toggles flex items-center gap-1.5">
+          <Link
+            href="/notifications"
+            title="Notifications"
+            aria-label="Notifications"
+            className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-theme-strong nav-bg text-muted backdrop-blur-sm transition-all hover:border-purple-soft/40 hover:text-fg"
+          >
+            <Bell className="h-4 w-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-purple px-1 text-[9px] font-semibold text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Link>
           <ThemeToggle compact />
           <CollapseToggle />
         </div>

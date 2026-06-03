@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import { AppMobileNav } from "@/components/shared/AppMobileNav";
+import { getUnreadCount } from "@/lib/notify";
 
 // The community portal is for approved members only. Pending/rejected users
 // are sent to /pending; logged-out users to /login. The sidebar adapts by role
@@ -18,10 +19,12 @@ export default async function CommunityLayout({
     redirect("/pending");
   }
 
+  const unread = await getUnreadCount(session.user.id);
+
   return (
     <div className="min-h-screen">
-      <AppSidebar user={session.user} />
-      <AppMobileNav role={session.user.role} />
+      <AppSidebar user={session.user} unreadCount={unread} />
+      <AppMobileNav role={session.user.role} unreadCount={unread} />
       <main className="app-main">
         <div className="mx-auto max-w-3xl px-5 pb-24 pt-6 sm:px-6 lg:py-12">
           {children}

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { notify, notifyMany } from "@/lib/notify";
 
 const BODY_MAX = 2000;
 const TITLE_MAX = 160;
@@ -109,13 +110,24 @@ export async function createComment(
 
   const post = await prisma.post.findUnique({
     where: { id: postId },
-    select: { id: true },
+    select: { id: true, authorId: true, type: true },
   });
   if (!post) return { ok: false, error: "Post not found." };
 
   await prisma.comment.create({
     data: { postId, authorId: user.id, body: text },
   });
+
+  // Notify the post's author (not yourself).
+  if (post.authorId !== user.id) {
+    await notify(post.authorId, {
+      type: "comment",
+      title: `${user.name ?? "Someone"} commented on your post`,
+      body: text.length > 120 ? `${text.slice(0, 120)}…` : text,
+      link: post.type === "win" ? "/community/wins" : "/community",
+    });
+  }
+
   revalidatePath("/community");
   revalidatePath("/community/wins");
   return { ok: true };
@@ -164,6 +176,22 @@ export async function createAnnouncement(input: {
   await prisma.announcement.create({
     data: { authorId: session.user.id, title, body },
   });
+
+  // Notify all approved members about the new announcement.
+  const recipients = await prisma.user.findMany({
+    where: { status: "approved", role: { not: "admin" } },
+    select: { id: true },
+  });
+  await notifyMany(
+    recipients.map((r) => r.id),
+    {
+      type: "announcement",
+      title: `📣 New announcement: ${title}`,
+      body: body.length > 120 ? `${body.slice(0, 120)}…` : body,
+      link: "/community/announcements",
+    }
+  );
+
   revalidatePath("/community/announcements");
   return { ok: true };
 }
