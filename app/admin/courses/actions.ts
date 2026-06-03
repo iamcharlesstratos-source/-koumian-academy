@@ -53,8 +53,14 @@ function validateCourse(input: CourseInput) {
   if (input.trailerUrl && input.trailerUrl.length > COURSE_URL_MAX) {
     throw new Error(`Video URL must be ${COURSE_URL_MAX} characters or fewer`);
   }
-  if (input.coverImageUrl && input.coverImageUrl.length > COURSE_URL_MAX) {
-    throw new Error(`Cover image URL must be ${COURSE_URL_MAX} characters or fewer`);
+  if (input.coverImageUrl) {
+    // Uploaded covers are compressed client-side and stored as data URLs;
+    // allow those up to ~1.5MB. Plain URLs keep the tighter limit.
+    const isDataImage = /^data:image\//i.test(input.coverImageUrl);
+    const max = isDataImage ? 1_500_000 : COURSE_URL_MAX;
+    if (input.coverImageUrl.length > max) {
+      throw new Error("Cover image is too large. Please use a smaller image.");
+    }
   }
 }
 

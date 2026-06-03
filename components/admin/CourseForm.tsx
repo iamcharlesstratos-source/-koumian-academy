@@ -13,6 +13,7 @@ import {
 import { createCourse, updateCourse, deleteCourse } from "@/app/admin/courses/actions";
 import { CATEGORIES, LEVELS, slugify } from "@/lib/utils";
 import { resolveVideo } from "@/lib/video";
+import { CoverImageUpload } from "./CoverImageUpload";
 
 const TRAILER_TYPES = [
   { id: "auto", label: "Auto-detect" },
@@ -207,34 +208,10 @@ export function CourseForm({ initial }: { initial?: Initial }) {
                 Cover image <span className="text-muted">(optional)</span>
               </h3>
             </div>
-            <label className="label">Image URL</label>
-            <input
-              className="input"
+            <CoverImageUpload
               value={coverImageUrl}
-              onChange={(e) => setCoverImageUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/…  or any direct image URL"
+              onChange={setCoverImageUrl}
             />
-            <p className="mt-2 text-[11px] text-muted">
-              Shown on the catalog card and at the top of the course page. Paste
-              a direct link to a JPG/PNG/WebP image (e.g. from Unsplash). Leave
-              blank to use the default gradient.
-            </p>
-            {coverImageUrl.trim() && (
-              <div className="mt-4 overflow-hidden rounded-xl border border-theme">
-                <div className="relative aspect-[16/9] w-full bg-current/[0.03]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={coverImageUrl}
-                    alt="Cover preview"
-                    className="absolute inset-0 h-full w-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display =
-                        "none";
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
