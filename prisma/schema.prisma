@@ -21,6 +21,7 @@ model User {
   passwordHash  String?
   emailVerified DateTime?
   image         String?
+  bio           String?   // Short profile headline/bio (shown on profile)
   role          String    @default("user")
   status        String    @default("pending")
   createdAt     DateTime  @default(now())

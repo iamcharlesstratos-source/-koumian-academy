@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/public/Nav";
 import { Footer } from "@/components/public/Footer";
-import { NameForm, PasswordForm } from "./SettingsForms";
+import { ProfileForm, PasswordForm } from "./SettingsForms";
 
 export const metadata = { title: "Account Settings — Koumian Academy" };
 
@@ -15,7 +15,14 @@ export default async function SettingsPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, email: true, username: true, passwordHash: true },
+    select: {
+      name: true,
+      email: true,
+      username: true,
+      passwordHash: true,
+      bio: true,
+      image: true,
+    },
   });
   if (!user) redirect("/login");
 
@@ -54,7 +61,11 @@ export default async function SettingsPage() {
           </header>
 
           <div className="space-y-6">
-            <NameForm initialName={user.name ?? ""} />
+            <ProfileForm
+              initialName={user.name ?? ""}
+              initialBio={user.bio ?? ""}
+              initialImage={user.image ?? ""}
+            />
             <PasswordForm hasPassword={!!user.passwordHash} />
           </div>
         </div>

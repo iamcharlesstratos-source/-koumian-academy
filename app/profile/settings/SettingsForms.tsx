@@ -3,22 +3,35 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Loader2, Save, KeyRound, User } from "lucide-react";
-import { updateName, changePassword } from "../actions";
+import { updateProfile, changePassword } from "../actions";
 
-export function NameForm({ initialName }: { initialName: string }) {
+export function ProfileForm({
+  initialName,
+  initialBio,
+  initialImage,
+}: {
+  initialName: string;
+  initialBio: string;
+  initialImage: string;
+}) {
   const [name, setName] = useState(initialName);
+  const [bio, setBio] = useState(initialBio);
+  const [image, setImage] = useState(initialImage);
   const [pending, startTransition] = useTransition();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     startTransition(async () => {
-      const result = await updateName(name);
+      const result = await updateProfile({ name, bio, image });
       if (result.ok) toast.success(result.message ?? "Saved.");
       else toast.error(result.error);
     });
   };
 
-  const dirty = name.trim() !== initialName.trim();
+  const dirty =
+    name.trim() !== initialName.trim() ||
+    bio.trim() !== initialBio.trim() ||
+    image.trim() !== initialImage.trim();
 
   return (
     <section className="surface rounded-2xl border border-theme p-6">
@@ -27,14 +40,44 @@ export function NameForm({ initialName }: { initialName: string }) {
           <User className="h-4 w-4" />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-fg">Display name</h2>
+          <h2 className="text-base font-semibold text-fg">Profile</h2>
           <p className="text-xs text-muted">
-            This is shown on your profile, posts, and certificates.
+            Your name, photo, and bio appear on your profile and posts.
           </p>
         </div>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
+        {/* Avatar preview + URL */}
+        <div className="flex items-center gap-4">
+          {image.trim() ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image}
+              alt=""
+              referrerPolicy="no-referrer"
+              className="h-16 w-16 flex-shrink-0 rounded-full object-cover ring-2 ring-purple/20"
+            />
+          ) : (
+            <span className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-purple/15 text-xl font-semibold text-purple-700 ring-2 ring-purple/10 dark:text-purple-200">
+              {name?.[0]?.toUpperCase() ?? "?"}
+            </span>
+          )}
+          <div className="min-w-0 flex-1">
+            <label className="label" htmlFor="image">
+              Avatar URL
+            </label>
+            <input
+              id="image"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
+              maxLength={2048}
+              className="input"
+              placeholder="https://…  (leave blank to use your initials)"
+            />
+          </div>
+        </div>
+
         <div>
           <label className="label" htmlFor="name">
             Full name
@@ -48,6 +91,25 @@ export function NameForm({ initialName }: { initialName: string }) {
             placeholder="Your name"
           />
         </div>
+
+        <div>
+          <div className="flex items-baseline justify-between">
+            <label className="label" htmlFor="bio">
+              Bio / headline
+            </label>
+            <span className="text-[10px] text-muted">{bio.length}/160</span>
+          </div>
+          <textarea
+            id="bio"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            maxLength={160}
+            rows={2}
+            className="input resize-none"
+            placeholder="e.g. Marketing student · Aspiring entrepreneur"
+          />
+        </div>
+
         <button
           type="submit"
           disabled={pending || !dirty || name.trim().length < 2}
@@ -58,7 +120,7 @@ export function NameForm({ initialName }: { initialName: string }) {
           ) : (
             <Save className="h-4 w-4" />
           )}
-          Save name
+          Save profile
         </button>
       </form>
     </section>

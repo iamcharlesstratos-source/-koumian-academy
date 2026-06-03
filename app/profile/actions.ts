@@ -8,28 +8,47 @@ import { prisma } from "@/lib/prisma";
 type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
 
 const NAME_MAX = 80;
+const BIO_MAX = 160;
+const URL_MAX = 2048;
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 200;
 
-/** Update the signed-in user's display name. */
-export async function updateName(name: string): Promise<ActionResult> {
+/** Update the signed-in user's profile: display name, bio, and avatar URL. */
+export async function updateProfile(input: {
+  name: string;
+  bio?: string;
+  image?: string;
+}): Promise<ActionResult> {
   const session = await auth();
   if (!session?.user?.id) return { ok: false, error: "Not signed in." };
 
-  const trimmed = name.trim();
-  if (trimmed.length < 2)
+  const name = input.name.trim();
+  if (name.length < 2)
     return { ok: false, error: "Name must be at least 2 characters." };
-  if (trimmed.length > NAME_MAX)
+  if (name.length > NAME_MAX)
     return { ok: false, error: `Name must be ${NAME_MAX} characters or fewer.` };
+
+  const bio = (input.bio ?? "").trim();
+  if (bio.length > BIO_MAX)
+    return { ok: false, error: `Bio must be ${BIO_MAX} characters or fewer.` };
+
+  const image = (input.image ?? "").trim();
+  if (image) {
+    if (image.length > URL_MAX)
+      return { ok: false, error: "Avatar URL is too long." };
+    if (!/^https?:\/\//i.test(image))
+      return { ok: false, error: "Avatar must be a valid http(s) image URL." };
+  }
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { name: trimmed },
+    data: { name, bio: bio || null, image: image || null },
   });
 
   revalidatePath("/profile");
   revalidatePath("/profile/settings");
-  return { ok: true, message: "Name updated." };
+  revalidatePath("/community");
+  return { ok: true, message: "Profile updated." };
 }
 
 /**
