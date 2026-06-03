@@ -11,6 +11,7 @@ import {
   Shield,
   KeyRound,
   Copy,
+  Trash2,
 } from "lucide-react";
 import {
   setUserStatus,
@@ -18,6 +19,7 @@ import {
   grantCourseAccess,
   revokeCourseAccess,
   resetUserPassword,
+  deleteUser,
 } from "@/app/admin/users/actions";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +47,7 @@ export function UserRow({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [removed, setRemoved] = useState(false);
   const [resetResult, setResetResult] = useState<{
     tempPassword: string;
   } | null>(null);
@@ -87,6 +90,26 @@ export function UserRow({
       }
     });
   };
+
+  const handleDelete = () => {
+    if (
+      !confirm(
+        `Permanently delete ${user.name ?? user.email}?\n\nThis removes their account and all their data (progress, posts, comments). This cannot be undone.`
+      )
+    )
+      return;
+    startTransition(async () => {
+      const result = await deleteUser(user.id);
+      if (result.ok) {
+        setRemoved(true);
+        toast.success("Account deleted.");
+      } else {
+        toast.error(result.error);
+      }
+    });
+  };
+
+  if (removed) return null;
 
   return (
     <div className="surface overflow-hidden rounded-xl border border-theme transition-colors hover:border-theme-strong">
@@ -178,6 +201,17 @@ export function UserRow({
               <KeyRound className="h-3.5 w-3.5" />
               Reset PW
             </button>
+            {!isSelf && (
+              <button
+                disabled={pending}
+                onClick={handleDelete}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-rose-700 disabled:opacity-40"
+                title="Permanently delete this account"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+            )}
           </div>
           <button
             onClick={() => setExpanded((v) => !v)}
