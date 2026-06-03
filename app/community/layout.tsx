@@ -13,7 +13,10 @@ export default async function CommunityLayout({
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=/community");
-  if (session.user.status !== "approved") redirect("/pending");
+  // Admins can access the community regardless of approval status.
+  if (session.user.role !== "admin" && session.user.status !== "approved") {
+    redirect("/pending");
+  }
 
   return (
     <div className="min-h-screen">

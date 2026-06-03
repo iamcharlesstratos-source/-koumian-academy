@@ -24,11 +24,14 @@ export async function setUserRole(userId: string, role: string) {
   if (!["user", "admin"].includes(role)) {
     throw new Error("Invalid role");
   }
+  // Promoting to admin auto-approves the account — an admin has full access,
+  // so leaving them "pending"/"rejected" would be contradictory.
   await prisma.user.update({
     where: { id: userId },
-    data: { role },
+    data: role === "admin" ? { role, status: "approved" } : { role },
   });
   revalidatePath("/admin/users");
+  revalidatePath("/admin");
 }
 
 export async function grantCourseAccess(userId: string, courseId: string) {

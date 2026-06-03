@@ -54,7 +54,10 @@ export default async function LessonPage({
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.status !== "approved") redirect("/pending");
+  // Admins can view any lesson regardless of approval status / enrollment.
+  if (session.user.role !== "admin" && session.user.status !== "approved") {
+    redirect("/pending");
+  }
 
   const course = await prisma.course.findUnique({
     where: { slug: params.slug },

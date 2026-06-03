@@ -12,7 +12,10 @@ export async function requireAdmin() {
 export async function requireApprovedUser() {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.status !== "approved") redirect("/pending");
+  // Admins have full access regardless of approval status.
+  if (session.user.role !== "admin" && session.user.status !== "approved") {
+    redirect("/pending");
+  }
   return session;
 }
 

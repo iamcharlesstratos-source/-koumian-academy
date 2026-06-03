@@ -13,7 +13,10 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 async function requireApproved() {
   const session = await auth();
   if (!session?.user) return null;
-  if (session.user.status !== "approved") return null;
+  // Admins can always participate/moderate, regardless of approval status.
+  if (session.user.role !== "admin" && session.user.status !== "approved") {
+    return null;
+  }
   return session.user;
 }
 
