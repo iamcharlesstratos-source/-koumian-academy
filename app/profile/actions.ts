@@ -34,10 +34,22 @@ export async function updateProfile(input: {
 
   const image = (input.image ?? "").trim();
   if (image) {
-    if (image.length > URL_MAX)
-      return { ok: false, error: "Avatar URL is too long." };
-    if (!/^https?:\/\//i.test(image))
-      return { ok: false, error: "Avatar must be a valid http(s) image URL." };
+    const isHttp = /^https?:\/\//i.test(image);
+    const isDataImage = /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(image);
+    if (!isHttp && !isDataImage) {
+      return {
+        ok: false,
+        error: "Avatar must be an uploaded image or a valid image URL.",
+      };
+    }
+    // Uploaded photos are compressed client-side; allow ~1.2MB of base64.
+    const max = isDataImage ? 1_200_000 : URL_MAX;
+    if (image.length > max) {
+      return {
+        ok: false,
+        error: "Image is too large. Please choose a smaller photo.",
+      };
+    }
   }
 
   await prisma.user.update({

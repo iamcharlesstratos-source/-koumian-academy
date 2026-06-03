@@ -1,9 +1,40 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Loader2, Save, KeyRound, User } from "lucide-react";
+import { Loader2, Save, KeyRound, User, Upload, X } from "lucide-react";
 import { updateProfile, changePassword } from "../actions";
+
+/**
+ * Read an image File, crop to a centered square, downscale to 256px, and
+ * return a compressed JPEG data URL — all in the browser. Keeps avatars tiny
+ * (~20-40KB) so we can store them directly without any upload service.
+ */
+function fileToAvatarDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const size = 256;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("no-canvas"));
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("bad-image"));
+    };
+    img.src = objectUrl;
+  });
+}
 
 export function ProfileForm({
   initialName,
@@ -17,7 +48,32 @@ export function ProfileForm({
   const [name, setName] = useState(initialName);
   const [bio, setBio] = useState(initialBio);
   const [image, setImage] = useState(initialImage);
+  const [processing, setProcessing] = useState(false);
   const [pending, startTransition] = useTransition();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("That image is too large (max 10MB).");
+      return;
+    }
+    setProcessing(true);
+    try {
+      const dataUrl = await fileToAvatarDataUrl(file);
+      setImage(dataUrl);
+    } catch {
+      toast.error("Couldn't read that image. Try another.");
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,33 +104,62 @@ export function ProfileForm({
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
-        {/* Avatar preview + URL */}
-        <div className="flex items-center gap-4">
-          {image.trim() ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={image}
-              alt=""
-              referrerPolicy="no-referrer"
-              className="h-16 w-16 flex-shrink-0 rounded-full object-cover ring-2 ring-purple/20"
-            />
-          ) : (
-            <span className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-purple/15 text-xl font-semibold text-purple-700 ring-2 ring-purple/10 dark:text-purple-200">
-              {name?.[0]?.toUpperCase() ?? "?"}
-            </span>
-          )}
-          <div className="min-w-0 flex-1">
-            <label className="label" htmlFor="image">
-              Avatar URL
-            </label>
-            <input
-              id="image"
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              maxLength={2048}
-              className="input"
-              placeholder="https://…  (leave blank to use your initials)"
-            />
+        {/* Avatar upload */}
+        <div>
+          <span className="label">Profile photo</span>
+          <div className="flex items-center gap-4">
+            {image.trim() ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={image}
+                alt=""
+                referrerPolicy="no-referrer"
+                className="h-16 w-16 flex-shrink-0 rounded-full object-cover ring-2 ring-purple/20"
+              />
+            ) : (
+              <span className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-purple/15 text-xl font-semibold text-purple-700 ring-2 ring-purple/10 dark:text-purple-200">
+                {name?.[0]?.toUpperCase() ?? "?"}
+              </span>
+            )}
+
+            <div className="min-w-0 flex-1">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onPickFile}
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={processing}
+                  className="btn-secondary text-xs disabled:opacity-50"
+                >
+                  {processing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  {image.trim() ? "Change photo" : "Upload photo"}
+                </button>
+                {image.trim() && (
+                  <button
+                    type="button"
+                    onClick={() => setImage("")}
+                    disabled={processing}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-theme-strong bg-current/[0.02] px-4 py-2 text-xs font-medium text-muted transition-colors hover:text-fg disabled:opacity-50"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Remove
+                  </button>
+                )}
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted">
+                JPG or PNG. We&apos;ll crop it to a square. Max 10MB.
+              </p>
+            </div>
           </div>
         </div>
 
