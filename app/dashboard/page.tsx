@@ -15,7 +15,10 @@ export default async function DashboardPage() {
   const userId = session.user.id;
 
   const [user, enrollments, latest, catalogCount] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, createdAt: true },
+    }),
     prisma.enrollment.findMany({
       where: { userId },
       include: {

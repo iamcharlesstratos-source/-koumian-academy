@@ -13,17 +13,42 @@ export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login?callbackUrl=/profile/settings");
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      name: true,
-      email: true,
-      username: true,
-      passwordHash: true,
-      bio: true,
-      image: true,
-    },
-  });
+  let user:
+    | {
+        name: string | null;
+        email: string;
+        username: string | null;
+        passwordHash: string | null;
+        bio: string | null;
+        image: string | null;
+      }
+    | null;
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        name: true,
+        email: true,
+        username: true,
+        passwordHash: true,
+        bio: true,
+        image: true,
+      },
+    });
+  } catch {
+    // bio column not migrated yet — load the rest and treat bio as empty.
+    const base = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        name: true,
+        email: true,
+        username: true,
+        passwordHash: true,
+        image: true,
+      },
+    });
+    user = base ? { ...base, bio: null } : null;
+  }
   if (!user) redirect("/login");
 
   return (

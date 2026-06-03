@@ -72,6 +72,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: {
             OR: [{ email: identifier }, { username: identifier }],
           },
+          // Explicit select (no optional columns like bio) so login keeps
+          // working even if a newer column hasn't been migrated yet.
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            role: true,
+            status: true,
+            passwordHash: true,
+          },
         });
 
         if (!user || !user.passwordHash) return null;

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
 import { PostComposer } from "@/components/community/PostComposer";
-import { PostCard, type PostCardData } from "@/components/community/PostCard";
+import { PostCard } from "@/components/community/PostCard";
+import { getPostCards } from "@/lib/community";
 import { Trophy } from "lucide-react";
 
 export const metadata = { title: "Big Wins — Koumian Academy" };
@@ -11,40 +11,7 @@ export default async function WinsPage() {
   const userId = session!.user.id;
   const isAdmin = session!.user.role === "admin";
 
-  const posts = await prisma.post.findMany({
-    where: { type: "win" },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-    include: {
-      author: { select: { name: true, image: true } },
-      likes: { select: { userId: true } },
-      comments: {
-        orderBy: { createdAt: "asc" },
-        include: { author: { select: { name: true, image: true } } },
-      },
-    },
-  });
-
-  const data: PostCardData[] = posts.map((p) => ({
-    id: p.id,
-    type: p.type,
-    body: p.body,
-    imageUrl: p.imageUrl,
-    createdAt: p.createdAt.toISOString(),
-    authorName: p.author.name,
-    authorImage: p.author.image,
-    likeCount: p.likes.length,
-    likedByMe: p.likes.some((l) => l.userId === userId),
-    canDelete: p.authorId === userId || isAdmin,
-    comments: p.comments.map((c) => ({
-      id: c.id,
-      body: c.body,
-      createdAt: c.createdAt.toISOString(),
-      authorName: c.author.name,
-      authorImage: c.author.image,
-      canDelete: c.authorId === userId || isAdmin,
-    })),
-  }));
+  const data = await getPostCards("win", userId, isAdmin);
 
   return (
     <div className="space-y-6">
