@@ -68,18 +68,6 @@ export function Hero() {
           </span>
         </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8 max-w-2xl text-balance text-lg leading-relaxed text-muted md:text-xl"
-        >
-          Carefully curated courses in <span className="text-fg">business</span>,{" "}
-          <span className="text-fg">marketing</span>, and{" "}
-          <span className="text-fg">finance</span> — designed for the people
-          who refuse to settle for the average.
-        </motion.p>
-
         {/* CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
