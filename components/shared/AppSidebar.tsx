@@ -12,6 +12,7 @@ import {
   Megaphone,
   Trophy,
   LogOut,
+  Settings,
   ChevronsLeft,
   ChevronsRight,
   type LucideIcon,
@@ -164,14 +165,18 @@ export function AppSidebar({ user }: { user: AppUser }) {
       </nav>
 
       <div className="sidebar-footer border-t border-theme p-3">
-        <div className="sidebar-user-row flex items-center gap-3 rounded-lg px-3 py-2.5">
+        <Link
+          href="/profile/settings"
+          title="Account settings"
+          className="sidebar-user-row group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-current/[0.05]"
+        >
           {user.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.image}
               alt=""
               referrerPolicy="no-referrer"
-              className="h-9 w-9 flex-shrink-0 rounded-full"
+              className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
             />
           ) : (
             <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-purple/15 text-sm text-purple-700 dark:text-purple-200">
@@ -179,10 +184,13 @@ export function AppSidebar({ user }: { user: AppUser }) {
             </span>
           )}
           <div className="sidebar-usermeta min-w-0 flex-1">
-            <div className="truncate text-sm text-fg">{user.name}</div>
+            <div className="truncate text-sm text-fg group-hover:text-purple-700 dark:group-hover:text-purple-200">
+              {user.name}
+            </div>
             <div className="truncate text-xs text-muted">{user.email}</div>
           </div>
-        </div>
+          <Settings className="sidebar-usermeta h-3.5 w-3.5 flex-shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100" />
+        </Link>
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/" })}
