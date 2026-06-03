@@ -51,6 +51,10 @@ export function CourseForm({ initial }: { initial?: Initial }) {
   const [slugTouched, setSlugTouched] = useState(!!initial?.slug);
   const [description, setDescription] = useState(initial?.description ?? "");
   const [category, setCategory] = useState(initial?.category ?? CATEGORIES[0]);
+  const [addingCategory, setAddingCategory] = useState(
+    !!initial?.category &&
+      !(CATEGORIES as readonly string[]).includes(initial.category)
+  );
   const [level, setLevel] = useState(initial?.level ?? LEVELS[0]);
   const [durationMin, setDurationMin] = useState(initial?.durationMin ?? 60);
   const [published, setPublished] = useState(initial?.published ?? true);
@@ -160,20 +164,56 @@ export function CourseForm({ initial }: { initial?: Initial }) {
 
         <div>
           <label className="label">Category</label>
-          <input
-            className="input"
-            list="course-categories"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            placeholder="e.g. Business, Marketing, Real Estate…"
-          />
-          <datalist id="course-categories">
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c[0].toUpperCase() + c.slice(1)} />
-            ))}
-          </datalist>
+          {addingCategory ? (
+            <div className="flex gap-2">
+              <input
+                className="input"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="e.g. Real Estate, Technology…"
+                autoFocus
+                maxLength={40}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setAddingCategory(false);
+                  setCategory(CATEGORIES[0]);
+                }}
+                className="btn-secondary whitespace-nowrap text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <select
+              className="input"
+              value={
+                (CATEGORIES as readonly string[]).includes(category)
+                  ? category
+                  : CATEGORIES[0]
+              }
+              onChange={(e) => {
+                if (e.target.value === "__add_new__") {
+                  setAddingCategory(true);
+                  setCategory("");
+                } else {
+                  setCategory(e.target.value);
+                }
+              }}
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c[0].toUpperCase() + c.slice(1)}
+                </option>
+              ))}
+              <option value="__add_new__">➕ Add a new category…</option>
+            </select>
+          )}
           <p className="mt-1.5 text-[11px] text-muted">
-            Pick a suggestion or type a new category to create one.
+            {addingCategory
+              ? "Type your new category, then save the course."
+              : "Choose a category or add your own."}
           </p>
         </div>
 
