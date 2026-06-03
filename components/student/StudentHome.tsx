@@ -72,7 +72,7 @@ export function StudentHome({
   const resume = inProgress[0] ?? notStarted[0];
 
   return (
-    <div className="px-4 pb-24 pt-6 sm:px-6 lg:pb-12 lg:pt-12">
+    <div className="px-4 pb-24 pt-6 sm:px-6 lg:pb-12 lg:pt-2">
       <div className="mx-auto max-w-7xl">
         {/* Welcome */}
         <motion.section

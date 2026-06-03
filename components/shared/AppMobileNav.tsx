@@ -9,11 +9,12 @@ import {
   Megaphone,
   Trophy,
   BookOpen,
-  Bell,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/public/ThemeToggle";
+import { NotificationBell } from "@/components/shared/NotificationBell";
+import type { RecentNotification } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: LucideIcon; exact?: boolean };
@@ -42,9 +43,11 @@ function tabsFor(role: string): Item[] {
 export function AppMobileNav({
   role,
   unreadCount = 0,
+  notifItems = [],
 }: {
   role: string;
   unreadCount?: number;
+  notifItems?: RecentNotification[];
 }) {
   const pathname = usePathname();
   const tabs = tabsFor(role);
@@ -55,19 +58,11 @@ export function AppMobileNav({
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-theme nav-bg px-4 py-3 backdrop-blur-xl lg:hidden">
         <Logo size="sm" />
         <div className="flex items-center gap-2">
-          <Link
-            href="/notifications"
-            title="Notifications"
-            aria-label="Notifications"
-            className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-theme-strong nav-bg text-muted backdrop-blur-sm transition-all hover:text-fg"
-          >
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-purple px-1 text-[9px] font-semibold text-white">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </Link>
+          <NotificationBell
+            items={notifItems}
+            unreadCount={unreadCount}
+            className="relative"
+          />
           <ThemeToggle compact />
         </div>
       </header>

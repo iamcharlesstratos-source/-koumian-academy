@@ -14,7 +14,6 @@ import {
   Medal,
   LogOut,
   Settings,
-  Bell,
   ChevronsLeft,
   ChevronsRight,
   type LucideIcon,
@@ -126,13 +125,7 @@ function CollapseToggle() {
   );
 }
 
-export function AppSidebar({
-  user,
-  unreadCount = 0,
-}: {
-  user: AppUser;
-  unreadCount?: number;
-}) {
+export function AppSidebar({ user }: { user: AppUser }) {
   const pathname = usePathname();
   const groups = buildGroups(user.role);
 
@@ -149,28 +142,6 @@ export function AppSidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin">
-        <ul className="space-y-0.5 pb-1">
-          <li>
-            <Link
-              href="/notifications"
-              title="Notifications"
-              className={cn(
-                "nav-item",
-                pathname === "/notifications" && "nav-item-active"
-              )}
-            >
-              <span className="relative flex flex-shrink-0">
-                <Bell className="h-4 w-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-purple px-1 text-[8px] font-semibold text-white">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </span>
-              <span className="sidebar-label">Notifications</span>
-            </Link>
-          </li>
-        </ul>
         {groups.map((group) => (
           <div key={group.heading} className="nav-group">
             <p className="sidebar-heading px-3 pb-2 pt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-muted">

@@ -46,6 +46,47 @@ export async function getUnreadCount(userId: string): Promise<number> {
   }
 }
 
+export type RecentNotification = {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read: boolean;
+  createdAt: string;
+};
+
+/** Recent notifications + unread count for the dropdown bell. Safe on error. */
+export async function getRecentNotifications(
+  userId: string,
+  limit = 8
+): Promise<{ items: RecentNotification[]; unreadCount: number }> {
+  try {
+    const [rows, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      }),
+      prisma.notification.count({ where: { userId, read: false } }),
+    ]);
+    return {
+      items: rows.map((n) => ({
+        id: n.id,
+        type: n.type,
+        title: n.title,
+        body: n.body,
+        link: n.link,
+        read: n.read,
+        createdAt: n.createdAt.toISOString(),
+      })),
+      unreadCount,
+    };
+  } catch {
+    return { items: [], unreadCount: 0 };
+  }
+}
+
 /** Create the same notification for many recipients (e.g. announcements). */
 export async function notifyMany(
   userIds: string[],
