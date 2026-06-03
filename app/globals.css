@@ -12,10 +12,13 @@
     --color-bg-overlay: rgba(255, 255, 255, 0.6);
     --color-fg: #0F0F14;
     --color-fg-muted: #5A5A66;
-    --color-border: rgba(15, 15, 20, 0.08);
-    --color-border-strong: rgba(15, 15, 20, 0.16);
+    --color-border: rgba(15, 15, 20, 0.12);
+    --color-border-strong: rgba(15, 15, 20, 0.2);
     --color-input-bg: rgba(15, 15, 20, 0.03);
     --color-nav-bg: rgba(245, 245, 247, 0.8);
+    color-scheme: light;
+    --surface-shadow: 0 1px 2px rgba(15, 15, 20, 0.04),
+      0 6px 18px rgba(15, 15, 20, 0.07);
     --color-violet: #7C3AED;
     --color-lavender: #E9D5FF;
     --color-deep-purple: #4B0E4E;
@@ -42,6 +45,8 @@
     --atmosphere-3: rgba(124, 58, 237, 0.1);
     --grain-opacity: 0.04;
     --grain-blend: overlay;
+    color-scheme: dark;
+    --surface-shadow: none;
   }
 
   html {
@@ -109,10 +114,11 @@
    * stay as component classes.
    */
 
-  /* Card surface — sets both background and border in one go */
+  /* Card surface — sets background, border, and a soft lift (light mode) */
   .surface {
     background: var(--color-bg-card);
     border-color: var(--color-border);
+    box-shadow: var(--surface-shadow, none);
   }
   .surface-hover:hover {
     background: var(--color-bg-card-hover);
