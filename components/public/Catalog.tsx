@@ -5,12 +5,7 @@ import { FilterTabs } from "./FilterTabs";
 import { CourseCard, type CourseCardData } from "./CourseCard";
 import { EmptyState } from "./EmptyState";
 
-const FILTERS = [
-  { id: "all", label: "All courses" },
-  { id: "business", label: "Business" },
-  { id: "marketing", label: "Marketing" },
-  { id: "finance", label: "Finance" },
-];
+const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 export function Catalog({
   courses,
@@ -23,6 +18,15 @@ export function Catalog({
   showHeader?: boolean;
   initialFilter?: string;
 }) {
+  // Filters are derived from the categories actually in use, so any custom
+  // category an admin adds automatically becomes browsable here.
+  const FILTERS = [
+    { id: "all", label: "All courses" },
+    ...Array.from(new Set(courses.map((c) => c.category).filter(Boolean)))
+      .sort()
+      .map((cat) => ({ id: cat, label: cap(cat) })),
+  ];
+
   const valid = FILTERS.some((f) => f.id === initialFilter)
     ? initialFilter
     : "all";

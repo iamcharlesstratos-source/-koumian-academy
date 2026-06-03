@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/access";
-import { slugify, CATEGORIES, LEVELS } from "@/lib/utils";
+import { slugify, LEVELS } from "@/lib/utils";
 
 type CourseInput = {
   title: string;
@@ -42,8 +42,11 @@ function validateCourse(input: CourseInput) {
   if (input.description.length > COURSE_DESC_MAX) {
     throw new Error(`Description must be ${COURSE_DESC_MAX} characters or fewer`);
   }
-  if (!(CATEGORIES as readonly string[]).includes(input.category)) {
-    throw new Error("Invalid category");
+  if (!input.category.trim()) {
+    throw new Error("Category is required");
+  }
+  if (input.category.trim().length > 40) {
+    throw new Error("Category must be 40 characters or fewer");
   }
   if (!(LEVELS as readonly string[]).includes(input.level)) {
     throw new Error("Invalid level");
@@ -141,7 +144,7 @@ export async function createCourse(input: CourseInput) {
       title: input.title.trim(),
       description: input.description.trim(),
       slug,
-      category: input.category,
+      category: input.category.trim().toLowerCase(),
       level: input.level,
       durationMin: Math.round(input.durationMin),
       priceCents: Math.round(input.priceCents),
@@ -176,7 +179,7 @@ export async function updateCourse(id: string, input: CourseInput) {
       title: input.title.trim(),
       description: input.description.trim(),
       slug,
-      category: input.category,
+      category: input.category.trim().toLowerCase(),
       level: input.level,
       durationMin: Math.round(input.durationMin),
       priceCents: Math.round(input.priceCents),

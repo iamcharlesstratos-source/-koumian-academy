@@ -216,6 +216,12 @@
   .input::placeholder {
     color: var(--color-fg-muted);
   }
+  /* Native <select> dropdown options: the OS popup is light, so inheriting the
+     light dark-mode text made them nearly invisible. Force readable contrast. */
+  .input option {
+    color: #0f0f14;
+    background-color: #ffffff;
+  }
 
   .label {
     @apply mb-1.5 block text-xs font-medium uppercase tracking-wider;

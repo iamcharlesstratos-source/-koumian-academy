@@ -160,17 +160,21 @@ export function CourseForm({ initial }: { initial?: Initial }) {
 
         <div>
           <label className="label">Category</label>
-          <select
+          <input
             className="input"
+            list="course-categories"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-          >
+            placeholder="e.g. Business, Marketing, Real Estate…"
+          />
+          <datalist id="course-categories">
             {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c[0].toUpperCase() + c.slice(1)}
-              </option>
+              <option key={c} value={c[0].toUpperCase() + c.slice(1)} />
             ))}
-          </select>
+          </datalist>
+          <p className="mt-1.5 text-[11px] text-muted">
+            Pick a suggestion or type a new category to create one.
+          </p>
         </div>
 
         <div>
