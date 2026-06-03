@@ -144,25 +144,33 @@ export function AppSidebar({
       <div className="sidebar-header flex items-center justify-between px-6 py-7">
         <Logo size="sm" />
         <div className="sidebar-toggles flex items-center gap-1.5">
-          <Link
-            href="/notifications"
-            title="Notifications"
-            aria-label="Notifications"
-            className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-theme-strong nav-bg text-muted backdrop-blur-sm transition-all hover:border-purple-soft/40 hover:text-fg"
-          >
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-purple px-1 text-[9px] font-semibold text-white">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </Link>
-          <ThemeToggle compact />
           <CollapseToggle />
         </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-2 scrollbar-thin">
+        <ul className="space-y-0.5 pb-1">
+          <li>
+            <Link
+              href="/notifications"
+              title="Notifications"
+              className={cn(
+                "nav-item",
+                pathname === "/notifications" && "nav-item-active"
+              )}
+            >
+              <span className="relative flex flex-shrink-0">
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-purple px-1 text-[8px] font-semibold text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </span>
+              <span className="sidebar-label">Notifications</span>
+            </Link>
+          </li>
+        </ul>
         {groups.map((group) => (
           <div key={group.heading} className="nav-group">
             <p className="sidebar-heading px-3 pb-2 pt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
@@ -213,6 +221,11 @@ export function AppSidebar({
           </div>
           <Settings className="sidebar-usermeta h-3.5 w-3.5 flex-shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100" />
         </Link>
+        <div className="sidebar-theme-row mt-1 flex items-center justify-between rounded-lg px-3 py-2">
+          <span className="sidebar-label text-xs text-muted">Appearance</span>
+          <ThemeToggle compact />
+        </div>
+
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/" })}

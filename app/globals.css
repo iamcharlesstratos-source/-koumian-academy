@@ -388,4 +388,9 @@ html.sidebar-collapsed {
   html.sidebar-collapsed.dark .app-sidebar .collapse-toggle {
     color: #c084fc;
   }
+  html.sidebar-collapsed .app-sidebar .sidebar-theme-row {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
