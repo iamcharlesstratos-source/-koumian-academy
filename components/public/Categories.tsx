@@ -90,7 +90,7 @@ export function Categories() {
                   <span className="text-xs uppercase tracking-[0.2em] text-purple-600 dark:text-purple-300">
                     Explore courses
                   </span>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-theme-strong text-fg transition-all group-hover:border-purple group-hover:bg-purple group-hover:text-white group-hover:shadow-[0_0_20px_rgba(124,58,237,0.5)]">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-theme-strong text-fg transition-all group-hover:border-purple group-hover:bg-purple group-hover:text-white group-hover:shadow-[0_0_20px_rgba(99,102,241,0.5)]">
                     <ArrowUpRight className="h-4 w-4 transition-transform group-hover:rotate-12" />
                   </span>
                 </div>

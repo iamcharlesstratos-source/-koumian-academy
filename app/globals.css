@@ -19,12 +19,12 @@
     color-scheme: light;
     --surface-shadow: 0 1px 2px rgba(15, 15, 20, 0.04),
       0 6px 18px rgba(15, 15, 20, 0.07);
-    --color-violet: #7C3AED;
-    --color-lavender: #E9D5FF;
+    --color-violet: #6366F1;
+    --color-lavender: #C7D2FE;
     --color-deep-purple: #4B0E4E;
-    --atmosphere-1: rgba(124, 58, 237, 0.08);
-    --atmosphere-2: rgba(75, 14, 78, 0.06);
-    --atmosphere-3: rgba(124, 58, 237, 0.04);
+    --atmosphere-1: rgba(99, 102, 241, 0.08);
+    --atmosphere-2: rgba(55, 48, 163, 0.06);
+    --atmosphere-3: rgba(99, 102, 241, 0.04);
     --grain-opacity: 0.025;
     --grain-blend: multiply;
   }
@@ -40,9 +40,9 @@
     --color-border-strong: rgba(255, 255, 255, 0.15);
     --color-input-bg: rgba(255, 255, 255, 0.02);
     --color-nav-bg: rgba(15, 15, 20, 0.8);
-    --atmosphere-1: rgba(124, 58, 237, 0.18);
-    --atmosphere-2: rgba(75, 14, 78, 0.22);
-    --atmosphere-3: rgba(124, 58, 237, 0.1);
+    --atmosphere-1: rgba(99, 102, 241, 0.18);
+    --atmosphere-2: rgba(55, 48, 163, 0.22);
+    --atmosphere-3: rgba(99, 102, 241, 0.1);
     --grain-opacity: 0.04;
     --grain-blend: overlay;
     color-scheme: dark;
@@ -99,7 +99,7 @@
   }
 
   ::selection {
-    background: rgba(124, 58, 237, 0.4);
+    background: rgba(99, 102, 241, 0.4);
     color: #f5f5f7;
   }
 }
@@ -129,19 +129,19 @@
 
   /* Editorial headline word emphasis */
   .word-violet {
-    color: #7C3AED;
-    text-shadow: 0 0 40px rgba(124, 58, 237, 0.4);
+    color: #6366F1;
+    text-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
   }
   .dark .word-violet {
-    color: #c084fc;
-    text-shadow: 0 0 40px rgba(124, 58, 237, 0.5);
+    color: #a5b4fc;
+    text-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
   }
 
   .word-lavender {
-    color: #6B21A8;
+    color: #4338CA;
   }
   .dark .word-lavender {
-    color: #E9D5FF;
+    color: #C7D2FE;
     text-shadow: 0 0 30px rgba(233, 213, 255, 0.4);
   }
 
@@ -158,8 +158,8 @@
     border-radius: inherit;
     background: radial-gradient(
       450px circle at var(--mx, 50%) var(--my, 50%),
-      rgba(124, 58, 237, 0.22),
-      rgba(124, 58, 237, 0.05) 30%,
+      rgba(99, 102, 241, 0.22),
+      rgba(99, 102, 241, 0.05) 30%,
       transparent 60%
     );
     opacity: 0;
@@ -245,12 +245,12 @@
   }
 
   .nav-item-active {
-    background: rgba(124, 58, 237, 0.1);
+    background: rgba(99, 102, 241, 0.1);
     color: var(--color-fg);
-    box-shadow: inset 3px 0 0 0 #7c3aed;
+    box-shadow: inset 3px 0 0 0 #6366f1;
   }
   .dark .nav-item-active {
-    background: rgba(124, 58, 237, 0.15);
+    background: rgba(99, 102, 241, 0.15);
   }
 
   /* Markdown */
@@ -261,15 +261,15 @@
   .prose-koumi h2 { @apply mb-3 mt-7 text-2xl font-semibold tracking-tight; color: var(--color-fg); }
   .prose-koumi h3 { @apply mb-2 mt-6 text-xl font-semibold tracking-tight; color: var(--color-fg); }
   .prose-koumi p { @apply mb-4 leading-relaxed; color: var(--color-fg); opacity: 0.9; }
-  .prose-koumi a { @apply underline underline-offset-4; color: #7C3AED; }
-  .prose-koumi a:hover { color: #6B21A8; }
-  .dark .prose-koumi a { color: #D8B4FE; }
-  .dark .prose-koumi a:hover { color: #E9D5FF; }
+  .prose-koumi a { @apply underline underline-offset-4; color: #6366F1; }
+  .prose-koumi a:hover { color: #4338CA; }
+  .dark .prose-koumi a { color: #A5B4FC; }
+  .dark .prose-koumi a:hover { color: #C7D2FE; }
   .prose-koumi ul { @apply mb-4 ml-6 list-disc space-y-2; }
   .prose-koumi ol { @apply mb-4 ml-6 list-decimal space-y-2; }
   .prose-koumi li { @apply leading-relaxed; }
-  .prose-koumi code { @apply rounded px-1.5 py-0.5 font-mono text-sm; background: rgba(124,58,237,0.12); color: #6B21A8; }
-  .dark .prose-koumi code { color: #D8B4FE; background: rgba(124,58,237,0.18); }
+  .prose-koumi code { @apply rounded px-1.5 py-0.5 font-mono text-sm; background: rgba(124,58,237,0.12); color: #4338CA; }
+  .dark .prose-koumi code { color: #A5B4FC; background: rgba(124,58,237,0.18); }
   .prose-koumi pre { @apply mb-4 overflow-x-auto rounded-lg border p-4; border-color: var(--color-border); background: var(--color-bg-card); }
   .prose-koumi pre code { @apply bg-transparent p-0; }
   .prose-koumi blockquote { @apply mb-4 border-l-2 border-purple pl-4 italic; opacity: 0.7; }
@@ -283,7 +283,7 @@
   }
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgba(124, 58, 237, 0.3) transparent;
+    scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
   }
 }
 
@@ -387,16 +387,53 @@ html.sidebar-collapsed {
   }
   /* Make the "open" arrow obvious while the sidebar is collapsed */
   html.sidebar-collapsed .app-sidebar .collapse-toggle {
-    border-color: rgba(124, 58, 237, 0.5);
-    color: #7c3aed;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
   }
   html.sidebar-collapsed.dark .app-sidebar .collapse-toggle {
-    color: #c084fc;
+    color: #a5b4fc;
   }
   html.sidebar-collapsed .app-sidebar .sidebar-theme-row {
     justify-content: center;
     padding-left: 0;
     padding-right: 0;
   }
+}
+
+/* ─── Sidebar: always dark navy with light text (LaundryPro look) ───
+ * The desktop sidebar stays dark regardless of the light/dark content theme,
+ * so we override the theme-aware utility colors for elements inside it. */
+.app-sidebar {
+  background-color: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.app-sidebar .text-fg {
+  color: #f8fafc !important;
+}
+.app-sidebar .text-muted,
+.app-sidebar .sidebar-heading {
+  color: rgba(226, 232, 240, 0.5) !important;
+}
+.app-sidebar .border-theme,
+.app-sidebar .border-t {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.app-sidebar .nav-item {
+  color: rgba(226, 232, 240, 0.72);
+}
+.app-sidebar .nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+.app-sidebar .nav-item-active {
+  background-color: rgba(99, 102, 241, 0.22) !important;
+  color: #ffffff !important;
+}
+.app-sidebar .nav-bg {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+.app-sidebar .nav-bg:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
 }

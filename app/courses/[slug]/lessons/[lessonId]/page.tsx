@@ -183,7 +183,7 @@ export default async function LessonPage({
                           className={cn(
                             "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                             active
-                              ? "bg-purple/15 text-fg [box-shadow:inset_3px_0_0_0_#7c3aed]"
+                              ? "bg-purple/15 text-fg [box-shadow:inset_3px_0_0_0_#6366f1]"
                               : "text-muted hover:bg-purple/5 hover:text-fg"
                           )}
                         >

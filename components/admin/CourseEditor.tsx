@@ -239,7 +239,7 @@ function TabButton({
       className={cn(
         "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all",
         active
-          ? "bg-purple text-white shadow-[0_0_25px_rgba(124,58,237,0.35)]"
+          ? "bg-purple text-white shadow-[0_0_25px_rgba(99,102,241,0.35)]"
           : "text-muted hover:bg-current/[0.05] hover:text-fg"
       )}
     >
@@ -422,7 +422,7 @@ function LessonSidebarItem({
       className={cn(
         "group flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors",
         active
-          ? "bg-purple/15 [box-shadow:inset_3px_0_0_0_#7c3aed]"
+          ? "bg-purple/15 [box-shadow:inset_3px_0_0_0_#6366f1]"
           : "hover:bg-current/[0.05]"
       )}
     >

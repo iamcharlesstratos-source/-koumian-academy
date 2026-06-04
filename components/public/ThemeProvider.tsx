@@ -8,7 +8,7 @@ type Ctx = { theme: Theme; toggle: () => void; setTheme: (t: Theme) => void };
 const ThemeContext = createContext<Ctx | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
 
   // Hydrate from whatever the inline script set on <html>
   useEffect(() => {
@@ -58,14 +58,14 @@ export const themeBootstrapScript = `
 (function(){
   try {
     var saved = localStorage.getItem('koumian-theme');
-    var theme = saved === 'light' ? 'light' : 'dark';
+    var theme = saved === 'dark' ? 'dark' : 'light';
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
   } catch(e) {
-    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('dark');
   }
 })();
 `;

@@ -89,7 +89,7 @@ export function Nav({ user }: { user: SessionUser | null }) {
                   className={cn(
                     "group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm transition-all",
                     active
-                      ? "bg-purple/10 text-fg [box-shadow:inset_0_0_0_1px_rgba(124,58,237,0.25)]"
+                      ? "bg-purple/10 text-fg [box-shadow:inset_0_0_0_1px_rgba(99,102,241,0.25)]"
                       : "text-muted hover:bg-purple/5 hover:text-fg"
                   )}
                 >

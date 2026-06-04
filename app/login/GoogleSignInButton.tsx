@@ -14,7 +14,7 @@ export function GoogleSignInButton({ callbackUrl }: { callbackUrl?: string }) {
         signIn("google", { callbackUrl: callbackUrl ?? "/" });
       }}
       disabled={loading}
-      className="group flex w-full items-center justify-center gap-3 rounded-xl border border-theme-strong bg-white px-5 py-3.5 text-sm font-medium text-ink shadow-lg transition-all hover:border-purple-soft/40 hover:shadow-[0_0_30px_rgba(124,58,237,0.3)] disabled:opacity-60"
+      className="group flex w-full items-center justify-center gap-3 rounded-xl border border-theme-strong bg-white px-5 py-3.5 text-sm font-medium text-ink shadow-lg transition-all hover:border-purple-soft/40 hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] disabled:opacity-60"
     >
       {loading ? (
         <Loader2 className="h-5 w-5 animate-spin" />

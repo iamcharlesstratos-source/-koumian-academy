@@ -90,7 +90,7 @@ export function AppMobileNav({
               <item.icon
                 className={cn(
                   "h-5 w-5",
-                  active && "drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]"
+                  active && "drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
                 )}
               />
               {item.label}

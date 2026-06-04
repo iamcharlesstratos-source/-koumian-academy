@@ -37,7 +37,7 @@ export function StatCard({
         <div className="mt-5">
           <div className="h-1.5 overflow-hidden rounded-full bg-current/[0.06]">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-purple-deep to-purple shadow-[0_0_15px_rgba(124,58,237,0.4)] transition-all duration-700"
+              className="h-full rounded-full bg-gradient-to-r from-purple-deep to-purple shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all duration-700"
               style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
             />
           </div>

@@ -38,20 +38,22 @@ const config: Config = {
           light: "#9C9CA8",
           dark: "#5A5A66",
         },
+        // Brand accent — indigo (token kept named "purple" so all existing
+        // `purple-*` utility classes recolor at once without renaming).
         purple: {
-          deep: "#4B0E4E",
-          DEFAULT: "#7C3AED",
-          50: "#FAF5FF",
-          100: "#F3E8FF",
-          200: "#E9D5FF",
-          300: "#D8B4FE",
-          400: "#C084FC",
-          500: "#A855F7",
-          600: "#9333EA",
-          700: "#7C3AED",
-          800: "#6B21A8",
-          900: "#581C87",
-          soft: "#E9D5FF",
+          deep: "#3730A3",
+          DEFAULT: "#6366F1",
+          50: "#EEF2FF",
+          100: "#E0E7FF",
+          200: "#C7D2FE",
+          300: "#A5B4FC",
+          400: "#818CF8",
+          500: "#6366F1",
+          600: "#4F46E5",
+          700: "#4338CA",
+          800: "#3730A3",
+          900: "#312E81",
+          soft: "#C7D2FE",
         },
       },
       fontFamily: {
@@ -86,7 +88,7 @@ const config: Config = {
       },
       backgroundImage: {
         "violet-glow":
-          "radial-gradient(circle at 50% 0%, rgba(124,58,237,0.15) 0%, rgba(124,58,237,0) 60%)",
+          "radial-gradient(circle at 50% 0%, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0) 60%)",
         "grain-noise":
           "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
       },
