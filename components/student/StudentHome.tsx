@@ -146,24 +146,28 @@ export function StudentHome({
         <section className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCard
             icon={BookOpen}
+            tone="indigo"
             label="Courses unlocked"
             value={String(totals.enrolledCount)}
             sub={`of ${totals.catalogCount} in catalog`}
           />
           <StatCard
             icon={CheckCircle2}
+            tone="emerald"
             label="Lessons completed"
             value={String(totals.completedLessons)}
             sub={`of ${totals.totalLessons} total`}
           />
           <StatCard
             icon={Clock}
+            tone="amber"
             label="In progress"
             value={String(inProgress.length)}
             sub={inProgress.length === 1 ? "course" : "courses"}
           />
           <StatCard
             icon={Trophy}
+            tone="sky"
             label="Finished"
             value={String(finished.length)}
             sub={finished.length === 1 ? "course" : "courses"}
@@ -276,17 +280,30 @@ function SectionHeader({
   );
 }
 
+const STAT_TONES: Record<string, { tile: string; icon: string }> = {
+  indigo: { tile: "bg-purple/10", icon: "text-purple-600 dark:text-purple-300" },
+  emerald: {
+    tile: "bg-emerald-500/10",
+    icon: "text-emerald-600 dark:text-emerald-300",
+  },
+  amber: { tile: "bg-amber-500/10", icon: "text-amber-600 dark:text-amber-300" },
+  sky: { tile: "bg-sky-500/10", icon: "text-sky-600 dark:text-sky-300" },
+};
+
 function StatCard({
   icon: Icon,
   label,
   value,
   sub,
+  tone = "indigo",
 }: {
   icon: typeof BookOpen;
   label: string;
   value: string;
   sub: string;
+  tone?: "indigo" | "emerald" | "amber" | "sky";
 }) {
+  const t = STAT_TONES[tone];
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -294,14 +311,22 @@ function StatCard({
       transition={{ duration: 0.4 }}
       className="surface rounded-2xl border border-theme p-5"
     >
-      <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted">
-        <Icon className="h-3.5 w-3.5 text-purple-500 dark:text-purple-300" />
-        {label}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-[10px] font-medium uppercase tracking-wider text-muted">
+            {label}
+          </div>
+          <div className="mt-2 text-3xl font-semibold tracking-tight text-fg">
+            {value}
+          </div>
+          <div className="mt-0.5 text-[11px] text-muted">{sub}</div>
+        </div>
+        <span
+          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${t.tile}`}
+        >
+          <Icon className={`h-4 w-4 ${t.icon}`} />
+        </span>
       </div>
-      <div className="mt-2 text-3xl font-semibold tracking-tight text-fg">
-        {value}
-      </div>
-      <div className="mt-0.5 text-[11px] text-muted">{sub}</div>
     </motion.div>
   );
 }

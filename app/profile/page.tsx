@@ -143,10 +143,10 @@ export default async function ProfilePage() {
 
           {/* Learning stats */}
           <section className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatTile icon={CheckCircle2} value={lessonsCompleted} label="Lessons completed" />
-            <StatTile icon={GraduationCap} value={finishedCourses.length} label="Courses finished" />
-            <StatTile icon={Award} value={finishedCourses.length} label="Certificates" />
-            <StatTile icon={TrendingUp} value={`${overallPct}%`} label="Overall progress" />
+            <StatTile icon={CheckCircle2} tone="emerald" value={lessonsCompleted} label="Lessons completed" />
+            <StatTile icon={GraduationCap} tone="sky" value={finishedCourses.length} label="Courses finished" />
+            <StatTile icon={Award} tone="amber" value={finishedCourses.length} label="Certificates" />
+            <StatTile icon={TrendingUp} tone="indigo" value={`${overallPct}%`} label="Overall progress" />
           </section>
 
           {isActive && (
@@ -519,18 +519,35 @@ export default async function ProfilePage() {
   );
 }
 
+const TILE_TONES: Record<string, { tile: string; icon: string }> = {
+  indigo: { tile: "bg-purple/10", icon: "text-purple-600 dark:text-purple-300" },
+  emerald: {
+    tile: "bg-emerald-500/10",
+    icon: "text-emerald-600 dark:text-emerald-300",
+  },
+  amber: { tile: "bg-amber-500/10", icon: "text-amber-600 dark:text-amber-300" },
+  sky: { tile: "bg-sky-500/10", icon: "text-sky-600 dark:text-sky-300" },
+};
+
 function StatTile({
   icon: Icon,
   value,
   label,
+  tone = "indigo",
 }: {
   icon: LucideIcon;
   value: string | number;
   label: string;
+  tone?: "indigo" | "emerald" | "amber" | "sky";
 }) {
+  const t = TILE_TONES[tone];
   return (
     <div className="surface rounded-2xl border border-theme p-5 backdrop-blur-sm">
-      <Icon className="h-4 w-4 text-purple-500 dark:text-purple-300" />
+      <span
+        className={`flex h-9 w-9 items-center justify-center rounded-xl ${t.tile}`}
+      >
+        <Icon className={`h-4 w-4 ${t.icon}`} />
+      </span>
       <div className="mt-3 text-3xl font-semibold tracking-tight text-fg">
         {value}
       </div>
