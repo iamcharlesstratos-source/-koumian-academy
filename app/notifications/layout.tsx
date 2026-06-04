@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import { AppMobileNav } from "@/components/shared/AppMobileNav";
 import { NotificationBell } from "@/components/shared/NotificationBell";
+import { GlobalSearch } from "@/components/shared/GlobalSearch";
 import { getRecentNotifications } from "@/lib/notify";
 
 export default async function NotificationsLayout({
@@ -24,7 +25,15 @@ export default async function NotificationsLayout({
         notifItems={items}
       />
       <main className="app-main">
-        <div className="pointer-events-none sticky top-0 z-30 hidden justify-end px-6 pt-4 lg:flex">
+        <div className="pointer-events-none sticky top-0 z-30 hidden items-center justify-between gap-4 px-6 pt-4 lg:flex">
+          <GlobalSearch
+            className="pointer-events-auto w-full max-w-sm"
+            placeholder={
+              session.user.role === "admin"
+                ? "Search courses & members…"
+                : "Search courses…"
+            }
+          />
           <NotificationBell
             items={items}
             unreadCount={unreadCount}

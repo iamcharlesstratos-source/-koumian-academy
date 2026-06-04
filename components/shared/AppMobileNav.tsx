@@ -9,6 +9,7 @@ import {
   Megaphone,
   Trophy,
   BookOpen,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/public/Logo";
@@ -58,6 +59,13 @@ export function AppMobileNav({
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-theme nav-bg px-4 py-3 backdrop-blur-xl lg:hidden">
         <Logo size="sm" />
         <div className="flex items-center gap-2">
+          <Link
+            href="/search"
+            aria-label="Search"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-current/5 hover:text-fg"
+          >
+            <Search className="h-5 w-5" />
+          </Link>
           <NotificationBell
             items={notifItems}
             unreadCount={unreadCount}

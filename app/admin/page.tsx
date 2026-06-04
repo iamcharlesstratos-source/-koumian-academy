@@ -10,6 +10,7 @@ import {
   Newspaper,
   MessageCircle,
   Megaphone,
+  Clock,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { StatCard } from "@/components/admin/StatCard";
@@ -37,6 +38,7 @@ export default async function AdminDashboard() {
     totalPosts,
     totalComments,
     totalAnnouncements,
+    approvedMembers,
   ] = await Promise.all([
     prisma.user.findMany({ select: { createdAt: true, status: true } }),
     prisma.user.findMany({
@@ -60,13 +62,17 @@ export default async function AdminDashboard() {
       where: { published: true },
       select: { id: true, courseId: true },
     }),
-    prisma.enrollment.findMany({ select: { courseId: true } }),
+    prisma.enrollment.findMany({ select: { courseId: true, userId: true } }),
     prisma.lessonCompletion.findMany({
       select: { lessonId: true, userId: true, completedAt: true },
     }),
     prisma.post.count(),
     prisma.comment.count(),
     prisma.announcement.count(),
+    prisma.user.findMany({
+      where: { status: "approved", role: { not: "admin" } },
+      select: { id: true, name: true, email: true, image: true },
+    }),
   ]);
 
   // ─── Member stats ───
@@ -101,6 +107,38 @@ export default async function AdminDashboard() {
   const activeLearners = new Set(
     completions.filter((c) => c.completedAt >= cutoff30).map((c) => c.userId)
   ).size;
+
+  // ─── Member journey funnel ───
+  const enrolledUserCount = new Set(enrollments.map((e) => e.userId)).size;
+  const learnerUserCount = new Set(completions.map((c) => c.userId)).size;
+  const funnel = [
+    { label: "Signed up", count: totalUsers, color: "bg-slate-400" },
+    { label: "Approved", count: approvedUsers, color: "bg-sky-500" },
+    { label: "Enrolled", count: enrolledUserCount, color: "bg-purple" },
+    { label: "Learners", count: learnerUserCount, color: "bg-amber-500" },
+    { label: "Active · 30d", count: activeLearners, color: "bg-emerald-500" },
+  ];
+  const funnelTotal = Math.max(
+    1,
+    funnel.reduce((s, f) => s + f.count, 0)
+  );
+
+  // ─── Inactive members (no completion in 30 days) ───
+  const lastActivityByUser = new Map<string, Date>();
+  for (const c of completions) {
+    const prev = lastActivityByUser.get(c.userId);
+    if (!prev || c.completedAt > prev) lastActivityByUser.set(c.userId, c.completedAt);
+  }
+  const inactiveMembers = approvedMembers
+    .map((m) => ({ ...m, lastActive: lastActivityByUser.get(m.id) ?? null }))
+    .filter((m) => !m.lastActive || m.lastActive < cutoff30)
+    .sort((a, b) => {
+      if (!a.lastActive && !b.lastActive) return 0;
+      if (!a.lastActive) return -1;
+      if (!b.lastActive) return 1;
+      return a.lastActive.getTime() - b.lastActive.getTime();
+    })
+    .slice(0, 6);
 
   // ─── Course performance (sorted by enrolled, then completions) ───
   const coursePerf = courses
@@ -180,6 +218,35 @@ export default async function AdminDashboard() {
           tone="amber"
           trend={`${publishedLessons.length} lessons live`}
         />
+      </section>
+
+      {/* Member journey funnel */}
+      <section className="mt-6 surface rounded-2xl border border-theme p-6 backdrop-blur-sm">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-fg">Member journey</h2>
+          <span className="text-xs text-muted">{totalUsers} total members</span>
+        </div>
+        <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-current/10">
+          {funnel.map((f) => (
+            <div
+              key={f.label}
+              className={`${f.color} h-full transition-all duration-500`}
+              style={{ width: `${(f.count / funnelTotal) * 100}%` }}
+              title={`${f.label}: ${f.count}`}
+            />
+          ))}
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {funnel.map((f) => (
+            <div key={f.label}>
+              <div className="flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${f.color}`} />
+                <span className="text-xs text-muted">{f.label}</span>
+              </div>
+              <div className="mt-1 text-2xl font-semibold text-fg">{f.count}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Signups trend + member breakdown */}
@@ -332,6 +399,64 @@ export default async function AdminDashboard() {
               </tbody>
             </table>
           </div>
+        )}
+      </section>
+
+      {/* Inactive members — needs attention */}
+      <section className="mt-6 surface rounded-2xl border border-theme p-6 backdrop-blur-sm">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-fg">
+            <Clock className="h-4 w-4 text-amber-500 dark:text-amber-300" />
+            Needs attention
+          </h2>
+          <span className="text-xs text-muted">
+            {inactiveMembers.length} inactive · 30 days+
+          </span>
+        </div>
+        {inactiveMembers.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-theme-strong px-4 py-8 text-center text-sm text-muted">
+            Everyone&apos;s been active recently. 🎉
+          </p>
+        ) : (
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {inactiveMembers.map((m) => (
+              <li key={m.id}>
+                <Link
+                  href="/admin/users"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-theme bg-current/[0.02] p-3 transition-colors hover:border-purple-soft/40 hover:bg-purple/[0.05]"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    {m.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.image}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                        className="h-9 w-9 flex-shrink-0 rounded-full"
+                      />
+                    ) : (
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-purple/15 text-sm text-purple-700 dark:text-purple-200">
+                        {m.name?.[0] ?? "?"}
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-fg">
+                        {m.name ?? "Member"}
+                      </div>
+                      <div className="truncate text-[11px] text-muted">
+                        {m.lastActive
+                          ? `Last active ${fmtDate(m.lastActive.getTime())}`
+                          : "No lessons completed yet"}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="flex-shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+                    Inactive
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 

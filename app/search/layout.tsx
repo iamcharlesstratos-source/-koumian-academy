@@ -1,16 +1,20 @@
-import { requireAdmin } from "@/lib/access";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { AppSidebar } from "@/components/shared/AppSidebar";
 import { AppMobileNav } from "@/components/shared/AppMobileNav";
 import { NotificationBell } from "@/components/shared/NotificationBell";
 import { GlobalSearch } from "@/components/shared/GlobalSearch";
 import { getRecentNotifications } from "@/lib/notify";
 
-export default async function AdminLayout({
+export default async function SearchLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireAdmin();
+  const session = await auth();
+  if (!session?.user) redirect("/login?callbackUrl=/search");
+
+  const isAdmin = session.user.role === "admin";
   const { items, unreadCount } = await getRecentNotifications(session.user.id);
 
   return (
@@ -22,10 +26,12 @@ export default async function AdminLayout({
         notifItems={items}
       />
       <main className="app-main">
-        <div className="pointer-events-none sticky top-0 z-30 hidden items-center justify-between gap-4 px-10 pt-4 lg:flex">
+        <div className="pointer-events-none sticky top-0 z-30 hidden items-center justify-between gap-4 px-6 pt-4 lg:flex">
           <GlobalSearch
             className="pointer-events-auto w-full max-w-sm"
-            placeholder="Search courses & members…"
+            placeholder={
+              isAdmin ? "Search courses & members…" : "Search courses…"
+            }
           />
           <NotificationBell
             items={items}
@@ -33,9 +39,7 @@ export default async function AdminLayout({
             className="pointer-events-auto relative"
           />
         </div>
-        <div className="mx-auto max-w-6xl px-6 pb-24 pt-8 lg:px-10 lg:pb-10 lg:pt-2">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );
