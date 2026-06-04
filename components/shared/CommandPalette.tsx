@@ -134,6 +134,9 @@ export function CommandPalette({ role }: { role: string }) {
       onClick={() => setOpen(false)}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search Koumian"
         className="surface w-full max-w-lg overflow-hidden rounded-2xl border border-theme-strong shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >

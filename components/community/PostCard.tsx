@@ -85,6 +85,7 @@ export function PostCard({ post }: { post: PostCardData }) {
     return init;
   });
   const [myReaction, setMyReaction] = useState<string | null>(post.myReaction);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [comments, setComments] = useState(post.comments);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -219,10 +220,17 @@ export function PostCard({ post }: { post: PostCardData }) {
       )}
 
       <div className="mt-4 flex items-center gap-1 border-t border-theme pt-3">
-        <div className="group relative">
+        <div
+          className="relative"
+          onMouseEnter={() => setPickerOpen(true)}
+          onMouseLeave={() => setPickerOpen(false)}
+        >
           <button
-            onClick={() => react(myReaction ?? "like")}
+            onClick={() => setPickerOpen((v) => !v)}
             disabled={pending}
+            aria-haspopup="true"
+            aria-expanded={pickerOpen}
+            aria-label={`React to post${total > 0 ? ` (${total})` : ""}`}
             className={cn(
               "inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
               myReaction
@@ -245,24 +253,33 @@ export function PostCard({ post }: { post: PostCardData }) {
             )}
           </button>
 
-          {/* Hover/focus reaction picker (desktop). Mobile gets a quick like. */}
-          <div className="surface pointer-events-none absolute bottom-full left-0 z-20 mb-2 flex gap-0.5 rounded-full border border-theme-strong p-1.5 opacity-0 shadow-lg transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-            {REACTIONS.map((r) => (
-              <button
-                key={r.type}
-                onClick={() => react(r.type)}
-                disabled={pending}
-                title={r.label}
-                aria-label={r.label}
-                className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-full text-lg transition-transform hover:scale-125",
-                  myReaction === r.type && "bg-purple/15"
-                )}
-              >
-                {r.emoji}
-              </button>
-            ))}
-          </div>
+          {/* Reaction picker — opens on hover (desktop) or tap (mobile). */}
+          {pickerOpen && (
+            <div
+              role="menu"
+              className="surface absolute bottom-full left-0 z-20 mb-2 flex gap-0.5 rounded-full border border-theme-strong p-1.5 shadow-lg"
+            >
+              {REACTIONS.map((r) => (
+                <button
+                  key={r.type}
+                  role="menuitem"
+                  onClick={() => {
+                    react(r.type);
+                    setPickerOpen(false);
+                  }}
+                  disabled={pending}
+                  title={r.label}
+                  aria-label={r.label}
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-full text-lg transition-transform hover:scale-125",
+                    myReaction === r.type && "bg-purple/15"
+                  )}
+                >
+                  {r.emoji}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <button
           onClick={() => setShowComments((v) => !v)}

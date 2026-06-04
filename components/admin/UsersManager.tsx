@@ -139,7 +139,7 @@ export function UsersManager({
 
       {/* Bulk action bar — appears when something is selected */}
       {selected.size > 0 && (
-        <div className="sticky top-3 z-20 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-purple-soft/40 bg-purple/[0.08] p-3 backdrop-blur-md">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-purple-soft/40 bg-purple/[0.08] p-3 backdrop-blur-md">
           <span className="px-2 text-sm font-medium text-fg">
             {selected.size} selected
           </span>
