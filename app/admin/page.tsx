@@ -163,18 +163,21 @@ export default async function AdminDashboard() {
           label="Active learners"
           value={activeLearners}
           icon={Activity}
+          tone="emerald"
           trend="completed a lesson · 30d"
         />
         <StatCard
           label="Published courses"
           value={courses.length}
           icon={BookOpen}
+          tone="sky"
           trend={`${totalEnrollments} course unlocks`}
         />
         <StatCard
           label="Lessons completed"
           value={totalCompletions}
           icon={CheckCircle2}
+          tone="amber"
           trend={`${publishedLessons.length} lessons live`}
         />
       </section>
