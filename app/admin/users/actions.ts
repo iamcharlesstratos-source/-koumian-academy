@@ -166,3 +166,88 @@ export async function resetUserPassword(
   revalidatePath("/admin/users");
   return { ok: true, tempPassword, email: user.email };
 }
+
+export type BulkResult =
+  | { ok: true; count: number; skipped: number }
+  | { ok: false; error: string };
+
+/** Approve / reject / reset-to-pending many users at once. */
+export async function bulkSetUserStatus(
+  ids: string[],
+  status: string
+): Promise<BulkResult> {
+  const session = await requireAdmin();
+  if (!["approved", "pending", "rejected"].includes(status)) {
+    return { ok: false, error: "Invalid status." };
+  }
+  // Never change your own status in a bulk op.
+  const targetIds = ids.filter((id) => id !== session.user.id);
+  if (targetIds.length === 0) {
+    return { ok: false, error: "No eligible members selected." };
+  }
+
+  // Figure out who is *newly* approved so we only notify them once.
+  let toNotify: string[] = [];
+  if (status === "approved") {
+    const notYet = await prisma.user.findMany({
+      where: { id: { in: targetIds }, status: { not: "approved" } },
+      select: { id: true },
+    });
+    toNotify = notYet.map((u) => u.id);
+  }
+
+  await prisma.user.updateMany({
+    where: { id: { in: targetIds } },
+    data: { status },
+  });
+
+  await Promise.all(
+    toNotify.map((id) =>
+      notify(id, {
+        type: "approval",
+        title: "Your account is approved 🎉",
+        body: "You now have full access to the community and your courses.",
+        link: "/community",
+      })
+    )
+  );
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return {
+    ok: true,
+    count: targetIds.length,
+    skipped: ids.length - targetIds.length,
+  };
+}
+
+/** Permanently delete many users at once (reuses the single-delete guards). */
+export async function bulkDeleteUsers(ids: string[]): Promise<BulkResult> {
+  const session = await requireAdmin();
+  const targetIds = ids.filter((id) => id !== session.user.id);
+  if (targetIds.length === 0) {
+    return { ok: false, error: "You can't delete your own account." };
+  }
+
+  // Protect the last admin before we start deleting.
+  const [totalAdmins, adminsInSet] = await Promise.all([
+    prisma.user.count({ where: { role: "admin" } }),
+    prisma.user.count({ where: { id: { in: targetIds }, role: "admin" } }),
+  ]);
+  if (totalAdmins - adminsInSet < 1) {
+    return {
+      ok: false,
+      error: "That would remove the last admin. Keep at least one.",
+    };
+  }
+
+  let deleted = 0;
+  for (const id of targetIds) {
+    const res = await deleteUser(id);
+    if (res.ok) deleted++;
+  }
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return { ok: true, count: deleted, skipped: ids.length - deleted };
+}

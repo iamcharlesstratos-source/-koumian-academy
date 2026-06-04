@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/public/ThemeToggle";
+import { CommandPalette } from "@/components/shared/CommandPalette";
 import { cn } from "@/lib/utils";
 
 type AppUser = {
@@ -133,6 +134,7 @@ export function AppSidebar({ user }: { user: AppUser }) {
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
   return (
+    <>
     <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border-r border-theme nav-bg backdrop-blur-xl lg:flex">
       <div className="sidebar-header flex items-center justify-between px-6 py-7">
         <Logo size="sm" />
@@ -208,5 +210,7 @@ export function AppSidebar({ user }: { user: AppUser }) {
         </button>
       </div>
     </aside>
+    <CommandPalette role={user.role} />
+    </>
   );
 }

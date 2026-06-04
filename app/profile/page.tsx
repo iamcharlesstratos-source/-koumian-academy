@@ -28,6 +28,7 @@ import { Nav } from "@/components/public/Nav";
 import { Footer } from "@/components/public/Footer";
 import { formatDuration, timeAgo } from "@/lib/utils";
 import { computeStreak, POINTS } from "@/lib/gamification";
+import { StreakHeatmap } from "@/components/shared/StreakHeatmap";
 
 export const metadata = { title: "My Profile — Koumian Academy" };
 
@@ -101,6 +102,25 @@ export default async function ProfilePage() {
     myCommentCount * POINTS.comment;
   const streak = computeStreak(completions.map((c) => c.completedAt));
 
+  // Activity heatmap — lessons completed per day over the last 16 weeks (UTC).
+  const dayCounts = new Map<string, number>();
+  for (const c of completions) {
+    const key = c.completedAt.toISOString().slice(0, 10);
+    dayCounts.set(key, (dayCounts.get(key) ?? 0) + 1);
+  }
+  const HEATMAP_DAYS = 112;
+  const nowD = new Date();
+  const heatmapDays = Array.from({ length: HEATMAP_DAYS }, (_, i) => {
+    const d = new Date(
+      Date.UTC(
+        nowD.getUTCFullYear(),
+        nowD.getUTCMonth(),
+        nowD.getUTCDate() - (HEATMAP_DAYS - 1 - i)
+      )
+    );
+    return { key: d.toISOString().slice(0, 10), count: dayCounts.get(d.toISOString().slice(0, 10)) ?? 0 };
+  });
+
   const badges: {
     label: string;
     desc: string;
@@ -170,6 +190,19 @@ export default async function ProfilePage() {
                 <Medal className="h-4 w-4" />
                 View leaderboard →
               </Link>
+            </section>
+          )}
+
+          {isActive && (
+            <section className="surface mb-8 rounded-2xl border border-theme p-6">
+              <div className="mb-5 flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.16em] text-fg">
+                  <Flame className="h-4 w-4 text-amber-500 dark:text-amber-300" />
+                  Activity
+                </h2>
+                <span className="text-xs text-muted">Last 16 weeks</span>
+              </div>
+              <StreakHeatmap days={heatmapDays} />
             </section>
           )}
 
@@ -355,9 +388,14 @@ export default async function ProfilePage() {
                         pct: 0,
                       };
                       const finished = prog.total > 0 && prog.done === prog.total;
-                      const continueHref = `/courses/${c.slug}${
-                        c.lessons[0] ? `/lessons/${c.lessons[0].id}` : ""
-                      }`;
+                      const nextLesson =
+                        c.lessons.find((l) => !completedSet.has(l.id)) ??
+                        c.lessons[0];
+                      const continueHref = finished
+                        ? `/courses/${c.slug}/certificate`
+                        : `/courses/${c.slug}${
+                            nextLesson ? `/lessons/${nextLesson.id}` : ""
+                          }`;
                       return (
                         <div
                           key={c.id}

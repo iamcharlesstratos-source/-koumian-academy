@@ -40,10 +40,14 @@ export function UserRow({
   user,
   courses,
   isSelf,
+  selected = false,
+  onToggleSelect,
 }: {
   user: UserData;
   courses: CourseLite[];
   isSelf: boolean;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -115,6 +119,15 @@ export function UserRow({
     <div className="surface overflow-hidden rounded-xl border border-theme transition-colors hover:border-theme-strong">
       <div className="flex flex-col items-stretch gap-4 p-4 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-3">
+          {onToggleSelect && (
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={() => onToggleSelect(user.id)}
+              aria-label={`Select ${user.name ?? user.email}`}
+              className="h-4 w-4 flex-shrink-0 cursor-pointer rounded border-theme-strong accent-purple"
+            />
+          )}
           {user.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

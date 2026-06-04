@@ -24,8 +24,11 @@ export function GlobalSearch({
           autoComplete="off"
           maxLength={80}
           aria-label="Search"
-          className="input rounded-full pl-10"
+          className="input rounded-full pl-10 lg:pr-14"
         />
+        <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 select-none items-center rounded border border-theme-strong bg-current/[0.04] px-1.5 py-0.5 font-sans text-[10px] font-medium text-muted lg:inline-flex">
+          ⌘K
+        </kbd>
       </div>
     </form>
   );

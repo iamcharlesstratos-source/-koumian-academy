@@ -12,6 +12,7 @@ import {
   Megaphone,
   Clock,
 } from "lucide-react";
+import { TrendChart } from "@/components/admin/TrendChart";
 import { prisma } from "@/lib/prisma";
 import { StatCard } from "@/components/admin/StatCard";
 
@@ -167,6 +168,20 @@ export default async function AdminDashboard() {
   }
   const maxWeek = Math.max(1, ...weekBuckets.map((b) => b.count));
   const signups8w = weekBuckets.reduce((s, b) => s + b.count, 0);
+
+  // ─── Lessons completed over the last 8 weeks (engagement trend) ───
+  const completionWeekBuckets = Array.from({ length: 8 }, (_, i) => {
+    const weeksAgo = 7 - i;
+    const repTs = now - weeksAgo * WEEK;
+    return { label: fmtDate(repTs), value: 0 };
+  });
+  for (const c of completions) {
+    const weeksAgo = Math.floor((now - c.completedAt.getTime()) / WEEK);
+    if (weeksAgo >= 0 && weeksAgo < 8) {
+      completionWeekBuckets[7 - weeksAgo].value += 1;
+    }
+  }
+  const completions8w = completionWeekBuckets.reduce((s, b) => s + b.value, 0);
 
   return (
     <>
@@ -330,6 +345,28 @@ export default async function AdminDashboard() {
             <MiniStat icon={Megaphone} value={totalAnnouncements} label="News" />
           </div>
         </div>
+      </section>
+
+      {/* Lessons completed — engagement trend */}
+      <section className="mt-6 surface rounded-2xl border border-theme p-6 backdrop-blur-sm">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-fg">
+              <Activity className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+              Lessons completed
+            </h2>
+            <p className="mt-1 text-xs text-muted">
+              Last 8 weeks · {completions8w} total
+            </p>
+          </div>
+        </div>
+        {totalCompletions === 0 ? (
+          <p className="rounded-lg border border-dashed border-theme-strong px-4 py-10 text-center text-sm text-muted">
+            No lesson completions yet. Learner activity will chart here.
+          </p>
+        ) : (
+          <TrendChart points={completionWeekBuckets} variant="emerald" />
+        )}
       </section>
 
       {/* Course performance */}

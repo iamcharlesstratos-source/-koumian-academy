@@ -14,9 +14,11 @@ import {
   LayoutDashboard,
   User as UserIcon,
   Compass,
+  Award,
 } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { ProgressRing } from "@/components/shared/ProgressRing";
 
 export type StudentCourse = {
   id: string;
@@ -27,9 +29,17 @@ export type StudentCourse = {
   level: string;
   durationMin: number;
   firstLessonId?: string;
+  nextLessonId?: string;
   totalLessons: number;
   completedLessons: number;
 };
+
+// Where "resume" should send the learner: the next unfinished lesson if known,
+// else the first lesson, else the course page.
+function resumeHref(c: StudentCourse) {
+  const target = c.nextLessonId ?? c.firstLessonId;
+  return target ? `/courses/${c.slug}/lessons/${target}` : `/courses/${c.slug}`;
+}
 
 type Props = {
   name: string;
@@ -118,11 +128,8 @@ export function StudentHome({
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              {resume && resume.firstLessonId ? (
-                <Link
-                  href={`/courses/${resume.slug}/lessons/${resume.firstLessonId}`}
-                  className="btn-primary"
-                >
+              {resume && (resume.nextLessonId ?? resume.firstLessonId) ? (
+                <Link href={resumeHref(resume)} className="btn-primary">
                   <PlayCircle className="h-4 w-4" />
                   Continue learning
                 </Link>
@@ -344,6 +351,14 @@ function EnrolledCourseCard({
       : Math.round((course.completedLessons / course.totalLessons) * 100);
   const isFinished =
     course.totalLessons > 0 && course.completedLessons === course.totalLessons;
+  const cardHref = isFinished
+    ? `/courses/${course.slug}/certificate`
+    : resumeHref(course);
+  const ctaLabel = isFinished
+    ? "View certificate"
+    : course.completedLessons === 0
+    ? "Start course"
+    : "Continue";
 
   const accents = [
     "from-purple-700 to-purple-500",
@@ -364,14 +379,7 @@ function EnrolledCourseCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, duration: 0.5 }}
     >
-      <Link
-        href={
-          course.firstLessonId
-            ? `/courses/${course.slug}/lessons/${course.firstLessonId}`
-            : `/courses/${course.slug}`
-        }
-        className="group block"
-      >
+      <Link href={cardHref} className="group block">
         <div
           onMouseMove={handleMouseMove}
           className="card-glow surface flex h-full flex-col overflow-hidden rounded-2xl border border-theme transition-all hover:border-purple-soft/40"
@@ -388,14 +396,25 @@ function EnrolledCourseCard({
                 {course.category}
               </span>
             </div>
-            {isFinished && (
-              <div className="absolute right-5 top-5">
+            <div className="absolute right-4 top-4">
+              {isFinished ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/95 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white shadow-lg">
                   <Trophy className="h-3 w-3" />
                   Finished
                 </span>
-              </div>
-            )}
+              ) : (
+                pct > 0 && (
+                  <ProgressRing
+                    value={pct}
+                    size={42}
+                    stroke={4}
+                    trackClass="text-white/25"
+                    barClass="text-white"
+                    labelClass="text-white"
+                  />
+                )
+              )}
+            </div>
           </div>
 
           <div className="flex flex-1 flex-col p-6">
@@ -438,12 +457,9 @@ function EnrolledCourseCard({
 
             <div className="mt-6 flex items-center justify-between border-t border-theme pt-4">
               <span className="inline-flex items-center gap-1.5 text-xs text-purple-600 transition-transform group-hover:translate-x-1 dark:text-purple-300">
-                {isFinished
-                  ? "Review course"
-                  : course.completedLessons === 0
-                  ? "Start course"
-                  : "Continue"}
-                <ArrowRight className="h-3.5 w-3.5" />
+                {isFinished && <Award className="h-3.5 w-3.5" />}
+                {ctaLabel}
+                {!isFinished && <ArrowRight className="h-3.5 w-3.5" />}
               </span>
               <span className="text-[10px] uppercase tracking-wider text-muted">
                 Lifetime access

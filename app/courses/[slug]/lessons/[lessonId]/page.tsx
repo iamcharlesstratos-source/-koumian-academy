@@ -105,6 +105,13 @@ export default async function LessonPage({
   const idx = course.lessons.findIndex((l) => l.id === lesson.id);
   const prev = idx > 0 ? course.lessons[idx - 1] : null;
   const next = idx < course.lessons.length - 1 ? course.lessons[idx + 1] : null;
+  // Completing THIS lesson finishes the whole course (last one remaining).
+  const completesCourse =
+    !isCompleted && totalCount > 0 && completedCount === totalCount - 1;
+  const nextHref = next
+    ? `/courses/${course.slug}/lessons/${next.id}`
+    : null;
+  const certificateHref = `/courses/${course.slug}/certificate`;
   const video = lesson.videoUrl
     ? resolveVideo(lesson.videoUrl, lesson.videoType)
     : null;
@@ -320,6 +327,9 @@ export default async function LessonPage({
                 <MarkCompleteButton
                   lessonId={lesson.id}
                   initialCompleted={isCompleted}
+                  nextHref={nextHref}
+                  completesCourse={completesCourse}
+                  certificateHref={certificateHref}
                 />
               )}
             </div>

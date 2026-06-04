@@ -59,6 +59,10 @@ export default async function DashboardPage() {
     const completedHere = courseLessonIds.filter((id) =>
       completedSet.has(id)
     ).length;
+    // The next lesson to resume = first (by order) the user hasn't completed.
+    const nextLessonId = e.course.lessons.find(
+      (l) => !completedSet.has(l.id)
+    )?.id;
     return {
       id: e.course.id,
       slug: e.course.slug,
@@ -68,6 +72,7 @@ export default async function DashboardPage() {
       level: e.course.level,
       durationMin: e.course.durationMin,
       firstLessonId: e.course.lessons[0]?.id,
+      nextLessonId,
       totalLessons: e.course.lessons.length,
       completedLessons: completedHere,
     };
