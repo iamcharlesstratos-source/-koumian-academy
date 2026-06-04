@@ -38,8 +38,16 @@ export async function createPost(input: {
   if (!body) return { ok: false, error: "Write something first." };
   if (body.length > BODY_MAX)
     return { ok: false, error: `Keep it under ${BODY_MAX} characters.` };
-  if (imageUrl && imageUrl.length > URL_MAX)
-    return { ok: false, error: "Image URL is too long." };
+  if (imageUrl) {
+    // Uploaded photos arrive as compressed data: URLs (much larger than a
+    // plain link); external links stay bounded by URL_MAX.
+    if (imageUrl.startsWith("data:image/")) {
+      if (imageUrl.length > 2_500_000)
+        return { ok: false, error: "Image is too large. Try a smaller one." };
+    } else if (imageUrl.length > URL_MAX) {
+      return { ok: false, error: "Image URL is too long." };
+    }
+  }
 
   await prisma.post.create({
     data: { authorId: user.id, body, type, imageUrl },
@@ -71,27 +79,75 @@ export async function deletePost(postId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function toggleLike(
-  postId: string
-): Promise<{ ok: true; liked: boolean } | { ok: false; error: string }> {
+const REACTIONS = ["like", "love", "fire", "clap", "insight"];
+
+/**
+ * Set (or toggle off) the current user's reaction on a post. One reaction per
+ * user per post: re-picking the same reaction removes it; picking a different
+ * one switches it. Resilient to a not-yet-migrated `type` column — falls back
+ * to plain like/unlike behaviour in that case.
+ */
+export async function setReaction(
+  postId: string,
+  type: string
+): Promise<ActionResult> {
   const user = await requireApproved();
   if (!user) return { ok: false, error: "Not allowed." };
+  const t = REACTIONS.includes(type) ? type : "like";
 
   const existing = await prisma.postLike.findUnique({
     where: { postId_userId: { postId, userId: user.id } },
+    select: { id: true },
   });
 
-  if (existing) {
-    await prisma.postLike.delete({ where: { id: existing.id } });
-    revalidatePath("/community");
-    revalidatePath("/community/wins");
-    return { ok: true, liked: false };
+  try {
+    if (existing) {
+      // Read the current reaction type to decide toggle-off vs switch.
+      let currentType = "like";
+      try {
+        const row = await prisma.postLike.findUnique({
+          where: { id: existing.id },
+          select: { type: true },
+        });
+        currentType = row?.type ?? "like";
+      } catch {
+        /* `type` column missing — treat as a plain like */
+      }
+
+      if (currentType === t) {
+        await prisma.postLike.delete({ where: { id: existing.id } });
+      } else {
+        try {
+          await prisma.postLike.update({
+            where: { id: existing.id },
+            data: { type: t },
+          });
+        } catch {
+          /* column missing — leave the existing like in place */
+        }
+      }
+    } else {
+      try {
+        await prisma.postLike.create({
+          data: { postId, userId: user.id, type: t },
+        });
+      } catch {
+        // column missing — create a plain like (DB default applies)
+        await prisma.postLike.create({ data: { postId, userId: user.id } });
+      }
+    }
+  } catch {
+    return { ok: false, error: "Couldn't save your reaction." };
   }
 
-  await prisma.postLike.create({ data: { postId, userId: user.id } });
   revalidatePath("/community");
   revalidatePath("/community/wins");
-  return { ok: true, liked: true };
+  return { ok: true };
+}
+
+/** Back-compat: a plain like toggles the default reaction. */
+export async function toggleLike(postId: string): Promise<ActionResult> {
+  return setReaction(postId, "like");
 }
 
 // ─── Comments ──────────────────────────────────────────────────────────

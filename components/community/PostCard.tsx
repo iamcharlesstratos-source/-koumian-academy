@@ -2,14 +2,25 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Heart, Trash2, Trophy, MessageCircle, Send, Loader2 } from "lucide-react";
+import { SmilePlus, Trash2, Trophy, MessageCircle, Send, Loader2 } from "lucide-react";
 import {
   deletePost,
-  toggleLike,
+  setReaction,
   createComment,
   deleteComment,
 } from "@/app/community/actions";
 import { timeAgo, cn } from "@/lib/utils";
+
+const REACTIONS: { type: string; emoji: string; label: string }[] = [
+  { type: "like", emoji: "👍", label: "Like" },
+  { type: "love", emoji: "❤️", label: "Love" },
+  { type: "fire", emoji: "🔥", label: "Fire" },
+  { type: "clap", emoji: "👏", label: "Clap" },
+  { type: "insight", emoji: "💡", label: "Insight" },
+];
+const EMOJI: Record<string, string> = Object.fromEntries(
+  REACTIONS.map((r) => [r.type, r.emoji])
+);
 
 export type CommentData = {
   id: string;
@@ -28,8 +39,8 @@ export type PostCardData = {
   createdAt: string;
   authorName: string | null;
   authorImage: string | null;
-  likeCount: number;
-  likedByMe: boolean;
+  reactions: { type: string; count: number }[];
+  myReaction: string | null;
   canDelete: boolean;
   comments: CommentData[];
 };
@@ -68,8 +79,12 @@ function Avatar({
 }
 
 export function PostCard({ post }: { post: PostCardData }) {
-  const [liked, setLiked] = useState(post.likedByMe);
-  const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [counts, setCounts] = useState<Record<string, number>>(() => {
+    const init: Record<string, number> = {};
+    for (const r of post.reactions) init[r.type] = r.count;
+    return init;
+  });
+  const [myReaction, setMyReaction] = useState<string | null>(post.myReaction);
   const [comments, setComments] = useState(post.comments);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -80,15 +95,29 @@ export function PostCard({ post }: { post: PostCardData }) {
 
   const isWin = post.type === "win";
 
-  const onLike = () => {
-    const next = !liked;
-    setLiked(next);
-    setLikeCount((c) => c + (next ? 1 : -1));
+  const total = Object.values(counts).reduce((s, n) => s + n, 0);
+  const presentEmojis = REACTIONS.filter((r) => (counts[r.type] ?? 0) > 0)
+    .map((r) => r.emoji)
+    .slice(0, 3);
+
+  const react = (type: string) => {
+    const prevMy = myReaction;
+    const prevCounts = counts;
+    const next = { ...counts };
+    if (prevMy === type) {
+      next[type] = Math.max(0, (next[type] ?? 0) - 1);
+      setMyReaction(null);
+    } else {
+      if (prevMy) next[prevMy] = Math.max(0, (next[prevMy] ?? 0) - 1);
+      next[type] = (next[type] ?? 0) + 1;
+      setMyReaction(type);
+    }
+    setCounts(next);
     startTransition(async () => {
-      const result = await toggleLike(post.id);
+      const result = await setReaction(post.id, type);
       if (!result.ok) {
-        setLiked(!next);
-        setLikeCount((c) => c + (next ? -1 : 1));
+        setMyReaction(prevMy);
+        setCounts(prevCounts);
         toast.error(result.error);
       }
     });
@@ -190,19 +219,51 @@ export function PostCard({ post }: { post: PostCardData }) {
       )}
 
       <div className="mt-4 flex items-center gap-1 border-t border-theme pt-3">
-        <button
-          onClick={onLike}
-          disabled={pending}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
-            liked
-              ? "text-rose-600 dark:text-rose-400"
-              : "text-muted hover:bg-purple/5 hover:text-fg"
-          )}
-        >
-          <Heart className={cn("h-4 w-4", liked && "fill-current")} />
-          {likeCount > 0 ? likeCount : ""}
-        </button>
+        <div className="group relative">
+          <button
+            onClick={() => react(myReaction ?? "like")}
+            disabled={pending}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
+              myReaction
+                ? "font-medium text-purple-700 dark:text-purple-200"
+                : "text-muted hover:bg-purple/5 hover:text-fg"
+            )}
+          >
+            {total > 0 ? (
+              <>
+                <span className="text-base leading-none">
+                  {presentEmojis.join("")}
+                </span>
+                <span>{total}</span>
+              </>
+            ) : (
+              <>
+                <SmilePlus className="h-4 w-4" />
+                React
+              </>
+            )}
+          </button>
+
+          {/* Hover/focus reaction picker (desktop). Mobile gets a quick like. */}
+          <div className="surface pointer-events-none absolute bottom-full left-0 z-20 mb-2 flex gap-0.5 rounded-full border border-theme-strong p-1.5 opacity-0 shadow-lg transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+            {REACTIONS.map((r) => (
+              <button
+                key={r.type}
+                onClick={() => react(r.type)}
+                disabled={pending}
+                title={r.label}
+                aria-label={r.label}
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-full text-lg transition-transform hover:scale-125",
+                  myReaction === r.type && "bg-purple/15"
+                )}
+              >
+                {r.emoji}
+              </button>
+            ))}
+          </div>
+        </div>
         <button
           onClick={() => setShowComments((v) => !v)}
           className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-muted transition-colors hover:bg-purple/5 hover:text-fg"

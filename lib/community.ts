@@ -19,9 +19,41 @@ export async function getPostCards(
       take: 50,
       include: {
         author: { select: { name: true, image: true } },
-        likes: { select: { userId: true } },
       },
     });
+    const postIds = posts.map((p) => p.id);
+
+    // Reactions are loaded separately so a not-yet-migrated `type` column
+    // degrades gracefully (everything counts as a "like") instead of breaking
+    // the whole feed.
+    const reactionsByPost = new Map<string, Map<string, number>>();
+    const myReactionByPost = new Map<string, string>();
+    if (postIds.length > 0) {
+      try {
+        let likes: { postId: string; userId: string; type: string }[];
+        try {
+          likes = await prisma.postLike.findMany({
+            where: { postId: { in: postIds } },
+            select: { postId: true, userId: true, type: true },
+          });
+        } catch {
+          // `type` column not migrated yet — fall back to plain likes.
+          const basic = await prisma.postLike.findMany({
+            where: { postId: { in: postIds } },
+            select: { postId: true, userId: true },
+          });
+          likes = basic.map((l) => ({ ...l, type: "like" }));
+        }
+        for (const l of likes) {
+          const m = reactionsByPost.get(l.postId) ?? new Map<string, number>();
+          m.set(l.type, (m.get(l.type) ?? 0) + 1);
+          reactionsByPost.set(l.postId, m);
+          if (l.userId === userId) myReactionByPost.set(l.postId, l.type);
+        }
+      } catch {
+        // PostLike table issue — render posts without reactions.
+      }
+    }
 
     const commentsByPost = new Map<string, PostCardData["comments"]>();
     try {
@@ -54,8 +86,10 @@ export async function getPostCards(
       createdAt: p.createdAt.toISOString(),
       authorName: p.author.name,
       authorImage: p.author.image,
-      likeCount: p.likes.length,
-      likedByMe: p.likes.some((l) => l.userId === userId),
+      reactions: Array.from(
+        (reactionsByPost.get(p.id) ?? new Map<string, number>()).entries()
+      ).map(([t, count]) => ({ type: t, count })),
+      myReaction: myReactionByPost.get(p.id) ?? null,
       canDelete: p.authorId === userId || isAdmin,
       comments: commentsByPost.get(p.id) ?? [],
     }));

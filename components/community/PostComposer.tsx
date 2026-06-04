@@ -1,9 +1,42 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Loader2, ImagePlus, Send, Trophy } from "lucide-react";
+import { Loader2, ImagePlus, Send, Trophy, X } from "lucide-react";
 import { createPost } from "@/app/community/actions";
+
+/**
+ * Read an image File, downscale to fit within `max` px (preserving aspect
+ * ratio), and return a compressed JPEG data URL — entirely in the browser.
+ * Keeps feed photos small (~100-300KB) so we can store them inline.
+ */
+async function compressImage(file: File, max = 1280, quality = 0.82): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      if (width > max || height > max) {
+        const scale = Math.min(max / width, max / height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("no-canvas"));
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("bad-image"));
+    };
+    img.src = objectUrl;
+  });
+}
 
 export function PostComposer({
   type = "feed",
@@ -16,10 +49,30 @@ export function PostComposer({
 }) {
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [showImage, setShowImage] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [pending, startTransition] = useTransition();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const isWin = type === "win";
+
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    setProcessing(true);
+    try {
+      const dataUrl = await compressImage(file);
+      setImageUrl(dataUrl);
+    } catch {
+      toast.error("Couldn't process that image.");
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const submit = () => {
     if (!body.trim()) {
@@ -35,7 +88,6 @@ export function PostComposer({
       if (result.ok) {
         setBody("");
         setImageUrl("");
-        setShowImage(false);
         toast.success(isWin ? "Big win shared! 🎉" : "Posted!");
       } else {
         toast.error(result.error);
@@ -73,27 +125,51 @@ export function PostComposer({
             className="w-full resize-none rounded-xl border border-theme bg-current/[0.02] px-4 py-3 text-sm text-fg placeholder:text-muted focus:border-purple/60 focus:outline-none focus:ring-1 focus:ring-purple/30"
           />
 
-          {showImage && (
-            <input
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="Paste an image URL (optional)"
-              className="mt-2 w-full rounded-lg border border-theme bg-current/[0.02] px-3 py-2 text-sm text-fg placeholder:text-muted focus:border-purple/60 focus:outline-none focus:ring-1 focus:ring-purple/30"
-            />
+          {/* Image preview */}
+          {imageUrl && (
+            <div className="relative mt-3 overflow-hidden rounded-xl border border-theme">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageUrl}
+                alt="Selected attachment"
+                className="max-h-72 w-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setImageUrl("")}
+                aria-label="Remove image"
+                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-black/75"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           )}
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={onPickFile}
+            className="hidden"
+          />
 
           <div className="mt-3 flex items-center justify-between">
             <button
               type="button"
-              onClick={() => setShowImage((v) => !v)}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-muted transition-colors hover:bg-purple/5 hover:text-fg"
+              onClick={() => fileRef.current?.click()}
+              disabled={processing}
+              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-muted transition-colors hover:bg-purple/5 hover:text-fg disabled:opacity-50"
             >
-              <ImagePlus className="h-4 w-4" />
-              {showImage ? "Hide image" : "Add image"}
+              {processing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ImagePlus className="h-4 w-4" />
+              )}
+              {processing ? "Processing…" : imageUrl ? "Change photo" : "Add photo"}
             </button>
             <button
               onClick={submit}
-              disabled={pending}
+              disabled={pending || processing}
               className="btn-primary text-sm"
             >
               {pending ? (
