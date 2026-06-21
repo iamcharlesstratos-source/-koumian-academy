@@ -279,7 +279,7 @@ export function KoumianLanding() {
             <div aria-hidden style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "118%", height: "118%", background: "radial-gradient(circle at center,rgba(124,58,237,.34),rgba(124,58,237,0) 60%)", pointerEvents: "none" }} />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/stoic-bust.png"
+              src="/stoic-bust.webp"
               alt="Stoic bust"
               style={{ position: "relative", width: "min(100%,560px)", maxHeight: "660px", objectFit: "contain", mixBlendMode: "screen", filter: "drop-shadow(0 30px 60px rgba(124,58,237,.3))", animation: "kFloatY 8s ease-in-out infinite" }}
             />
@@ -432,7 +432,7 @@ export function KoumianLanding() {
       {/* ===== CTA ===== */}
       <section id="join" style={{ position: "relative", zIndex: 1, padding: "clamp(96px,12vw,170px) clamp(20px,5vw,72px)", textAlign: "center", overflow: "hidden", borderTop: "1px solid rgba(155,120,255,.08)" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/stoic-bust.png" alt="" aria-hidden="true" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "min(90%,640px)", objectFit: "contain", mixBlendMode: "screen", opacity: 0.22, pointerEvents: "none" }} />
+        <img src="/stoic-bust.webp" alt="" aria-hidden="true" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "min(90%,640px)", objectFit: "contain", mixBlendMode: "screen", opacity: 0.22, pointerEvents: "none" }} />
         <div aria-hidden style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "900px", height: "600px", background: "radial-gradient(ellipse at center,rgba(124,58,237,.26),rgba(124,58,237,0) 62%)", pointerEvents: "none" }} />
         <div style={{ position: "relative", maxWidth: "820px", margin: "0 auto" }}>
           <h2 style={{ margin: 0, fontFamily: SERIF, fontWeight: 600, fontSize: "clamp(2.6rem,5.4vw,4.4rem)", lineHeight: 1.06, color: "#F6F4FB" }}>
@@ -517,7 +517,7 @@ function Mark({ size, glow, center }: { size: number; glow?: boolean; center?: b
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/koumian-mark.png"
+      src="/koumian-mark.webp"
       alt="Koumian Academy"
       style={{
         width: `${size}px`,
