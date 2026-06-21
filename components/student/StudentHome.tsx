@@ -363,7 +363,7 @@ function EnrolledCourseCard({
   const accents = [
     "from-purple-700 to-purple-500",
     "from-violet-700 to-fuchsia-500",
-    "from-purple-600 to-indigo-500",
+    "from-purple-600 to-purple-400",
   ];
   const accent = accents[index % accents.length];
 

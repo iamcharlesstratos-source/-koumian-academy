@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toggleLessonComplete } from "./actions";
 
-const CONFETTI_COLORS = ["#6366F1", "#A5B4FC", "#F59E0B", "#10B981", "#FFFFFF"];
+const CONFETTI_COLORS = ["#7C3AED", "#C4B5FD", "#F59E0B", "#10B981", "#FFFFFF"];
 
 function celebrate(big: boolean) {
   const base = {
@@ -93,7 +93,7 @@ export function MarkCompleteButton({
           "inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all active:scale-[0.98]",
           completed
             ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/15"
-            : "border-purple bg-purple text-white hover:shadow-[0_0_25px_rgba(99,102,241,0.45)]"
+            : "border-purple bg-purple text-white hover:shadow-[0_0_25px_rgba(124,58,237,0.45)]"
         )}
       >
         {pending ? (

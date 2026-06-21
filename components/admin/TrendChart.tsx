@@ -2,7 +2,7 @@
 // width (preserveAspectRatio="none") with a non-scaling stroke so the line
 // stays crisp at any width. No dots (they'd distort under non-uniform scale).
 const VARIANTS = {
-  indigo: { stroke: "#6366F1", fill: "rgba(99,102,241,0.28)" },
+  indigo: { stroke: "#7C3AED", fill: "rgba(124,58,237,0.28)" },
   emerald: { stroke: "#10B981", fill: "rgba(16,185,129,0.28)" },
   amber: { stroke: "#F59E0B", fill: "rgba(245,158,11,0.28)" },
   sky: { stroke: "#0EA5E9", fill: "rgba(14,165,233,0.28)" },

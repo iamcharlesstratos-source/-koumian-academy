@@ -28,7 +28,7 @@ const TESTIMONIALS = [
     name: "Aria Tan",
     role: "Operator, Indie Studio",
     initial: "A",
-    accent: "from-purple-600 to-indigo-500",
+    accent: "from-purple-600 to-purple-400",
   },
 ];
 

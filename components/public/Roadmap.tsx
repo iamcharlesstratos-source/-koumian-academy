@@ -125,7 +125,7 @@ export function Roadmap() {
                       className={cn(
                         "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border transition-all",
                         open
-                          ? "border-purple bg-purple text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+                          ? "border-purple bg-purple text-white shadow-[0_0_20px_rgba(124,58,237,0.4)]"
                           : "border-theme-strong text-muted"
                       )}
                     >
