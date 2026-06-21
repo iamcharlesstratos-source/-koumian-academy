@@ -1,9 +1,8 @@
 import Link from "next/link";
 
 export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
-  // Uses the badged logo (philosopher on a black circular medallion). The black
-  // backdrop is baked into the image so the mark stays crisp in BOTH light and
-  // dark mode — the transparent version washed out against light backgrounds.
+  // Transparent violet mark (cut out of its background) so it floats cleanly on
+  // the dark theme — no black medallion behind it.
   const dims =
     size === "sm" ? "h-10 w-10" : size === "lg" ? "h-20 w-20" : "h-14 w-14";
   const text =
@@ -12,14 +11,13 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
     size === "sm" ? "text-[9px]" : size === "lg" ? "text-xs" : "text-[10px]";
   return (
     <Link href="/" className="group flex items-center gap-3">
-      <span
-        className={`relative flex-shrink-0 overflow-hidden rounded-full shadow-lg shadow-purple/25 transition-shadow group-hover:shadow-purple/40 ${dims}`}
-      >
+      <span className={`relative flex-shrink-0 ${dims}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo-badge.png"
+          src="/koumian-mark.webp"
           alt="Koumian Academy"
-          className="h-full w-full scale-[1.01] object-cover transition-transform group-hover:scale-105"
+          className="h-full w-full object-contain transition-transform group-hover:scale-105"
+          style={{ filter: "drop-shadow(0 0 9px rgba(124,58,237,0.5))" }}
         />
       </span>
       <span className="logo-text flex flex-col leading-none">
