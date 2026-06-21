@@ -133,27 +133,55 @@ async function uniqueSlug(base: string, ignoreId?: string): Promise<string> {
   }
 }
 
+// Optional Course columns that were added after the initial deploy. If the
+// live DB hasn't been migrated yet (see prisma/neon-migrations.sql), writing
+// them throws a Postgres "column does not exist" error (Prisma code P2022).
+// We detect that and retry without them so an admin is never blocked from
+// saving — the cover/trailer just won't persist until the migration runs.
+function isMissingColumnError(e: unknown): boolean {
+  const code = (e as { code?: string } | null)?.code;
+  const msg = e instanceof Error ? e.message : String(e);
+  return (
+    code === "P2022" ||
+    /column .* does not exist/i.test(msg) ||
+    /(coverImageUrl|trailerUrl|trailerType)/.test(msg)
+  );
+}
+
+function buildCourseData(input: CourseInput, slug: string) {
+  return {
+    title: input.title.trim(),
+    description: input.description.trim(),
+    slug,
+    category: input.category.trim().toLowerCase(),
+    level: input.level,
+    durationMin: Math.round(input.durationMin),
+    priceCents: Math.round(input.priceCents),
+    published: input.published,
+    coverImageUrl: input.coverImageUrl?.trim() || null,
+    trailerUrl: input.trailerUrl?.trim() || null,
+    trailerType: input.trailerType?.trim() || null,
+  };
+}
+
 export async function createCourse(input: CourseInput) {
   await requireAdmin();
   validateCourse(input);
 
   const slug = await uniqueSlug(input.slug || input.title);
+  const data = buildCourseData(input, slug);
 
-  const course = await prisma.course.create({
-    data: {
-      title: input.title.trim(),
-      description: input.description.trim(),
-      slug,
-      category: input.category.trim().toLowerCase(),
-      level: input.level,
-      durationMin: Math.round(input.durationMin),
-      priceCents: Math.round(input.priceCents),
-      published: input.published,
-      coverImageUrl: input.coverImageUrl?.trim() || null,
-      trailerUrl: input.trailerUrl?.trim() || null,
-      trailerType: input.trailerType?.trim() || null,
-    },
-  });
+  let course;
+  try {
+    course = await prisma.course.create({ data });
+  } catch (e) {
+    if (!isMissingColumnError(e)) throw e;
+    const { coverImageUrl, trailerUrl, trailerType, ...base } = data;
+    void coverImageUrl;
+    void trailerUrl;
+    void trailerType;
+    course = await prisma.course.create({ data: base });
+  }
 
   revalidatePath("/");
   revalidatePath("/admin");
@@ -173,22 +201,17 @@ export async function updateCourse(id: string, input: CourseInput) {
       ? await uniqueSlug(input.slug, id)
       : existing.slug;
 
-  await prisma.course.update({
-    where: { id },
-    data: {
-      title: input.title.trim(),
-      description: input.description.trim(),
-      slug,
-      category: input.category.trim().toLowerCase(),
-      level: input.level,
-      durationMin: Math.round(input.durationMin),
-      priceCents: Math.round(input.priceCents),
-      published: input.published,
-      coverImageUrl: input.coverImageUrl?.trim() || null,
-      trailerUrl: input.trailerUrl?.trim() || null,
-      trailerType: input.trailerType?.trim() || null,
-    },
-  });
+  const data = buildCourseData(input, slug);
+  try {
+    await prisma.course.update({ where: { id }, data });
+  } catch (e) {
+    if (!isMissingColumnError(e)) throw e;
+    const { coverImageUrl, trailerUrl, trailerType, ...base } = data;
+    void coverImageUrl;
+    void trailerUrl;
+    void trailerType;
+    await prisma.course.update({ where: { id }, data: base });
+  }
 
   revalidatePath("/");
   revalidatePath("/admin");

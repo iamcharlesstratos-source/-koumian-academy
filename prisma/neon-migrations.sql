@@ -10,6 +10,23 @@
 -- site never crashes — but running this unlocks their full functionality.
 -- ─────────────────────────────────────────────────────────────────────────
 
+-- 0) Course cover image + intro/trailer video  ← fixes "can't save course"
+ALTER TABLE "Course" ADD COLUMN IF NOT EXISTS "coverImageUrl" TEXT;
+ALTER TABLE "Course" ADD COLUMN IF NOT EXISTS "trailerUrl"    TEXT;
+ALTER TABLE "Course" ADD COLUMN IF NOT EXISTS "trailerType"   TEXT;
+
+-- 0b) Rich lesson editor fields (JSON-encoded as TEXT)
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "sections"              TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "takeaways"             TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "proTip"                TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "videoDuration"         TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "videoType"             TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "assignmentEnabled"     BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "assignmentTitle"       TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "assignmentDescription" TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "assignmentFileTypes"   TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "published"             BOOLEAN NOT NULL DEFAULT true;
+
 -- 1) Profile bio (self-service profile)
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "bio" TEXT;
 
