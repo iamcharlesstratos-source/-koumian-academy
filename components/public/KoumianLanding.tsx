@@ -13,9 +13,6 @@ const NAV = [
   { label: "Home", href: "#home" },
   { label: "Courses", href: "#courses" },
   { label: "About", href: "#about" },
-  { label: "Philosophy", href: "#philosophy" },
-  { label: "Resources", href: "#courses" },
-  { label: "Community", href: "#join" },
 ];
 
 const VALUES = [
@@ -41,7 +38,7 @@ const PILLARS = [
   { idx: "03", name: "Legacy", desc: "Create work that outlives the moment." },
 ];
 
-const FOOTER_LINKS = ["Courses", "About", "Philosophy", "Resources", "Community", "Sign In"];
+const FOOTER_LINKS = ["Courses", "About", "Sign In"];
 
 const CSS = `
 @keyframes kHeroIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:none;}}
@@ -178,11 +175,8 @@ export function KoumianLanding() {
               ))}
             </nav>
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <Link href="/login" className="k-signin" style={{ fontSize: "13px", fontWeight: 500, letterSpacing: ".03em", color: "#E4DFF1", textDecoration: "none", whiteSpace: "nowrap" }}>
+              <Link href="/login" className="k-join" style={ctaStyle("11px 22px", "13px", "9px")}>
                 Sign In
-              </Link>
-              <Link href="/signup" className="k-join" style={ctaStyle("11px 22px", "13px", "9px")}>
-                Join Academy
               </Link>
             </div>
           </div>
@@ -227,11 +221,8 @@ export function KoumianLanding() {
             </a>
           ))}
           <div style={{ display: "flex", gap: "14px", marginTop: "14px" }}>
-            <Link href="/login" onClick={() => setMenuOpen(false)} style={{ fontSize: "14px", fontWeight: 500, color: "#E4DFF1", textDecoration: "none", padding: "13px 24px", border: "1px solid rgba(155,120,255,.4)", borderRadius: "9px" }}>
+            <Link href="/login" onClick={() => setMenuOpen(false)} style={ctaStyle("13px 24px", "14px", "9px")}>
               Sign In
-            </Link>
-            <Link href="/signup" onClick={() => setMenuOpen(false)} style={ctaStyle("13px 24px", "14px", "9px")}>
-              Join Academy
             </Link>
           </div>
         </div>
