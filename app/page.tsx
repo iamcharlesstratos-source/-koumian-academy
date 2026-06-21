@@ -5,6 +5,7 @@ import { Categories } from "@/components/public/Categories";
 import { Skills } from "@/components/public/Skills";
 import { Roadmap } from "@/components/public/Roadmap";
 import { Testimonials } from "@/components/public/Testimonials";
+import { WordmarkBand } from "@/components/public/WordmarkBand";
 import { About } from "@/components/public/About";
 import { FinalCTA } from "@/components/public/FinalCTA";
 import { Footer } from "@/components/public/Footer";
@@ -48,6 +49,7 @@ export default async function HomePage() {
         <Skills />
         <Roadmap />
         <Testimonials />
+        <WordmarkBand />
         <About />
         <FinalCTA signedIn={false} />
       </main>
