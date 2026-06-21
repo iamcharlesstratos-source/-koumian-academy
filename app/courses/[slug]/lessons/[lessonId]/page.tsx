@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   File as FileIcon,
+  Download,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -35,6 +36,37 @@ function parseJson<T>(s: string | null, fallback: T): T {
     return JSON.parse(s) as T;
   } catch {
     return fallback;
+  }
+}
+
+// Resilient lesson load: if a newly-added column (e.g. `resources`) isn't
+// migrated yet, the all-columns fetch throws — fall back to an explicit
+// select that omits it so the lesson still renders.
+async function loadLessonById(id: string) {
+  try {
+    return await prisma.lesson.findUnique({ where: { id } });
+  } catch {
+    return await prisma.lesson.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        courseId: true,
+        title: true,
+        body: true,
+        videoUrl: true,
+        order: true,
+        sections: true,
+        takeaways: true,
+        proTip: true,
+        videoDuration: true,
+        videoType: true,
+        assignmentEnabled: true,
+        assignmentTitle: true,
+        assignmentDescription: true,
+        assignmentFileTypes: true,
+        published: true,
+      },
+    });
   }
 }
 
@@ -86,10 +118,13 @@ export default async function LessonPage({
     if (!hasAccess) redirect("/pending");
   }
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: params.lessonId },
-  });
+  const lesson = await loadLessonById(params.lessonId);
   if (!lesson || lesson.courseId !== course.id) notFound();
+
+  const resources = parseJson<{ label: string; url: string }[]>(
+    (lesson as { resources?: string | null }).resources ?? null,
+    []
+  );
 
   // Load completions for this user across this course's lessons
   const completions = await prisma.lessonCompletion.findMany({
@@ -487,6 +522,38 @@ export default async function LessonPage({
                 </div>
               );
             })()}
+
+            {/* Resources & downloads */}
+            {resources.length > 0 && (
+              <section className="mt-12">
+                <div className="mb-4 flex items-center gap-2">
+                  <FileIcon className="h-5 w-5 text-purple-600 dark:text-purple-300" />
+                  <h3 className="text-lg font-semibold tracking-tight text-fg">
+                    Resources &amp; Downloads
+                  </h3>
+                </div>
+                <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {resources.map((r, i) => (
+                    <li key={i}>
+                      <a
+                        href={r.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="surface flex items-center gap-3 rounded-xl border border-theme p-3 transition-colors hover:border-purple-soft/40"
+                      >
+                        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-purple/10 text-purple-600 dark:text-purple-300">
+                          <FileIcon className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-sm text-fg">
+                          {r.label || r.url}
+                        </span>
+                        <Download className="h-4 w-4 flex-shrink-0 text-muted" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {/* Prev/next nav */}
             <nav className="mt-16 grid grid-cols-1 gap-3 border-t border-theme pt-8 sm:grid-cols-2">

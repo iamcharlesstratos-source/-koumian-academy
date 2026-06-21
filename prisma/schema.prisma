@@ -183,6 +183,7 @@ model Lesson {
   assignmentTitle      String?
   assignmentDescription String?
   assignmentFileTypes  String?  // JSON: string[] (e.g. ["images","videos","pdfs"])
+  resources            String?  // JSON: [{ label, url }] downloadable lesson resources
   published            Boolean  @default(true)
 
   course      Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)

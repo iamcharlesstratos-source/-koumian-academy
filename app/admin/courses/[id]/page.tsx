@@ -4,17 +4,50 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { CourseEditor } from "@/components/admin/CourseEditor";
 
+// Resilient load: if a newly-added lesson column (e.g. `resources`) hasn't
+// been migrated to the DB yet, the all-columns include throws — fall back to
+// an explicit select of the known columns so the editor still opens.
+async function loadCourse(id: string) {
+  try {
+    return await prisma.course.findUnique({
+      where: { id },
+      include: { lessons: { orderBy: { order: "asc" } } },
+    });
+  } catch {
+    return await prisma.course.findUnique({
+      where: { id },
+      include: {
+        lessons: {
+          orderBy: { order: "asc" },
+          select: {
+            id: true,
+            title: true,
+            body: true,
+            order: true,
+            videoUrl: true,
+            videoType: true,
+            videoDuration: true,
+            sections: true,
+            takeaways: true,
+            proTip: true,
+            published: true,
+            assignmentEnabled: true,
+            assignmentTitle: true,
+            assignmentDescription: true,
+            assignmentFileTypes: true,
+          },
+        },
+      },
+    });
+  }
+}
+
 export default async function EditCoursePage({
   params,
 }: {
   params: { id: string };
 }) {
-  const course = await prisma.course.findUnique({
-    where: { id: params.id },
-    include: {
-      lessons: { orderBy: { order: "asc" } },
-    },
-  });
+  const course = await loadCourse(params.id);
 
   if (!course) notFound();
 
@@ -59,6 +92,8 @@ export default async function EditCoursePage({
           assignmentTitle: l.assignmentTitle,
           assignmentDescription: l.assignmentDescription,
           assignmentFileTypes: l.assignmentFileTypes,
+          resources:
+            (l as { resources?: string | null }).resources ?? null,
         }))}
       />
     </>

@@ -26,6 +26,7 @@ ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "assignmentEnabled"     BOOLEAN NO
 ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "assignmentTitle"       TEXT;
 ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "assignmentDescription" TEXT;
 ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "assignmentFileTypes"   TEXT;
+ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "resources"             TEXT;
 ALTER TABLE "Lesson" ADD COLUMN IF NOT EXISTS "published"             BOOLEAN NOT NULL DEFAULT true;
 
 -- 1) Profile bio (self-service profile)

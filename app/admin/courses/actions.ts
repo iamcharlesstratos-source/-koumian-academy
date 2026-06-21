@@ -123,6 +123,19 @@ function validateLesson(input: LessonInput) {
       `Assignment description must be ${ASSIGNMENT_DESC_MAX} characters or fewer`
     );
   }
+  if (input.resources) {
+    if (input.resources.length > 20) {
+      throw new Error("A lesson can have at most 20 resources");
+    }
+    for (const r of input.resources) {
+      if (r.label && r.label.length > 200) {
+        throw new Error("Resource label must be 200 characters or fewer");
+      }
+      if (r.url && r.url.length > COURSE_URL_MAX) {
+        throw new Error(`Resource URL must be ${COURSE_URL_MAX} characters or fewer`);
+      }
+    }
+  }
 }
 
 async function uniqueSlug(base: string, ignoreId?: string): Promise<string> {
@@ -150,7 +163,7 @@ function isMissingColumnError(e: unknown): boolean {
   return (
     code === "P2022" ||
     /column .* does not exist/i.test(msg) ||
-    /(coverImageUrl|trailerUrl|trailerType|sections|takeaways|proTip|videoType|videoDuration|assignment(Enabled|Title|Description|FileTypes))/.test(
+    /(coverImageUrl|trailerUrl|trailerType|sections|takeaways|proTip|videoType|videoDuration|resources|assignment(Enabled|Title|Description|FileTypes))/.test(
       msg
     )
   );
@@ -240,6 +253,7 @@ export async function deleteCourse(id: string) {
 // ─────────── Lessons ───────────
 
 export type LessonSection = { title: string; body: string };
+export type LessonResource = { label: string; url: string };
 
 export type LessonInput = {
   title: string;
@@ -255,6 +269,7 @@ export type LessonInput = {
   assignmentTitle?: string | null;
   assignmentDescription?: string | null;
   assignmentFileTypes?: string[];
+  resources?: LessonResource[];
 };
 
 function packLessonData(input: LessonInput) {
@@ -274,6 +289,7 @@ function packLessonData(input: LessonInput) {
     assignmentFileTypes: input.assignmentFileTypes
       ? JSON.stringify(input.assignmentFileTypes)
       : null,
+    resources: input.resources ? JSON.stringify(input.resources) : null,
   };
 }
 
@@ -311,9 +327,11 @@ export async function createLesson(courseId: string, input: LessonInput) {
       assignmentTitle,
       assignmentDescription,
       assignmentFileTypes,
+      resources,
       published,
       ...base
     } = data;
+    void resources;
     void sections;
     void takeaways;
     void proTip;
@@ -353,9 +371,11 @@ export async function updateLesson(lessonId: string, input: LessonInput) {
       assignmentTitle,
       assignmentDescription,
       assignmentFileTypes,
+      resources,
       published,
       ...base
     } = data;
+    void resources;
     void sections;
     void takeaways;
     void proTip;

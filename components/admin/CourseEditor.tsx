@@ -36,6 +36,7 @@ import {
   moveLessonDown,
   publishAllLessons,
   type LessonSection,
+  type LessonResource,
 } from "@/app/admin/courses/actions";
 import { CourseForm } from "@/components/admin/CourseForm";
 import { resolveVideo } from "@/lib/video";
@@ -73,6 +74,7 @@ type RawLesson = {
   assignmentTitle: string | null;
   assignmentDescription: string | null;
   assignmentFileTypes: string | null;
+  resources: string | null;
 };
 
 type EditorLesson = {
@@ -91,6 +93,7 @@ type EditorLesson = {
   assignmentTitle: string;
   assignmentDescription: string;
   assignmentFileTypes: string[];
+  resources: LessonResource[];
 };
 
 const VIDEO_TYPES = [
@@ -151,6 +154,7 @@ function toEditorLesson(l: RawLesson): EditorLesson {
       "videos",
       "pdfs",
     ]),
+    resources: parseJson<LessonResource[]>(l.resources, []),
   };
 }
 
@@ -555,6 +559,9 @@ function LessonFormPanel({
   const [assignmentFileTypes, setAssignmentFileTypes] = useState<string[]>(
     lesson.assignmentFileTypes
   );
+  const [resources, setResources] = useState<LessonResource[]>(
+    lesson.resources
+  );
 
   const [pending, startSave] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -585,6 +592,7 @@ function LessonFormPanel({
           assignmentTitle,
           assignmentDescription,
           assignmentFileTypes,
+          resources: resources.filter((r) => r.url.trim() || r.label.trim()),
         });
         setSavedAt(new Date().toLocaleTimeString());
         toast.success("Lesson saved.");
@@ -834,6 +842,72 @@ function LessonFormPanel({
           onChange={(e) => setProTip(e.target.value)}
           placeholder="Add a pro tip for this lesson (shown in a highlighted box)…"
         />
+      </Panel>
+
+      {/* Resources & Downloads */}
+      <Panel
+        icon={FileIcon}
+        title="Resources & Downloads"
+        action={
+          <button
+            onClick={() =>
+              setResources((arr) => [...arr, { label: "", url: "" }])
+            }
+            className="inline-flex items-center gap-1.5 rounded-lg border border-theme-strong bg-current/[0.04] px-3 py-1.5 text-xs text-fg transition-colors hover:bg-current/[0.07]"
+          >
+            <Plus className="h-3 w-3" />
+            Add Resource
+          </button>
+        }
+      >
+        {resources.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-theme-strong px-4 py-8 text-center text-xs text-muted">
+            No resources. Add downloadable links (PDFs, worksheets, templates).
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {resources.map((r, i) => (
+              <div
+                key={i}
+                className="flex flex-col gap-2 sm:flex-row sm:items-center"
+              >
+                <input
+                  className="input sm:max-w-[42%]"
+                  value={r.label}
+                  onChange={(e) =>
+                    setResources((arr) =>
+                      arr.map((x, idx) =>
+                        idx === i ? { ...x, label: e.target.value } : x
+                      )
+                    )
+                  }
+                  placeholder="Label (e.g. Worksheet PDF)"
+                />
+                <input
+                  className="input flex-1"
+                  value={r.url}
+                  onChange={(e) =>
+                    setResources((arr) =>
+                      arr.map((x, idx) =>
+                        idx === i ? { ...x, url: e.target.value } : x
+                      )
+                    )
+                  }
+                  placeholder="https://… (link to the file)"
+                />
+                <button
+                  onClick={() =>
+                    setResources((arr) => arr.filter((_, idx) => idx !== i))
+                  }
+                  className="self-end rounded-lg border border-theme-strong bg-current/[0.02] p-2 text-muted transition-colors hover:bg-current/[0.07] hover:text-fg sm:self-auto"
+                  title="Remove"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </Panel>
 
       {/* Weekly Assignment */}
