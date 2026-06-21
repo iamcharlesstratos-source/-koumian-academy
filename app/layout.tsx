@@ -34,16 +34,35 @@ const siteUrl =
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
   "http://localhost:3000";
 
+const SITE_TITLE = "Koumian Academy — Education. Character. Legacy.";
+const SITE_DESC =
+  "The internal school of Koumizen — training every Koumian in wisdom, discipline, leadership, excellence, and legacy.";
+
 export const metadata: Metadata = {
-  title: "Koumian Academy — Learn. Grow. Elevate.",
-  description:
-    "A premium course library for business, marketing, and finance. Learn from carefully crafted programs designed to elevate your craft.",
+  title: SITE_TITLE,
+  description: SITE_DESC,
   metadataBase: new URL(siteUrl),
   applicationName: "Koumian Academy",
   appleWebApp: {
     capable: true,
     title: "Koumian",
     statusBarStyle: "black-translucent",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Koumian Academy",
+    title: SITE_TITLE,
+    description: SITE_DESC,
+    url: siteUrl,
+    images: [
+      { url: "/og.png", width: 1200, height: 630, alt: "Koumian Academy" },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Koumian Academy",
+    description: "Education. Character. Legacy.",
+    images: ["/og.png"],
   },
 };
 

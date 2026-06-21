@@ -23,13 +23,24 @@ const VALUES = [
   { L: "E", name: "Evolve", desc: "We embrace change and innovate continuously." },
 ];
 
-const COURSES = [
-  { roman: "I", cat: "Foundation", title: "Stoicism: The Foundation", desc: "Learn timeless principles for discipline, clarity, and self-mastery.", lessons: "8 Lessons" },
-  { roman: "II", cat: "Mind", title: "Mastering Your Mind", desc: "Train your thoughts, build focus, and strengthen emotional control.", lessons: "10 Lessons" },
-  { roman: "III", cat: "Leadership", title: "The Koumian Leader", desc: "Lead with ownership, courage, communication, and accountability.", lessons: "12 Lessons" },
-  { roman: "IV", cat: "Legacy", title: "Build What Lasts", desc: "Create impact, protect the culture, and leave a legacy that empowers generations.", lessons: "10 Lessons" },
-  { roman: "V", cat: "Systems", title: "Systems & Excellence", desc: "Learn the standards, processes, and execution habits that help Koumizen operate with consistency and excellence.", lessons: "9 Lessons" },
-  { roman: "VI", cat: "Service", title: "Customer Sincere Care", desc: "Develop empathy, communication, and customer-first thinking to create meaningful customer experiences.", lessons: "7 Lessons" },
+export type CourseShow = {
+  roman: string;
+  cat: string;
+  title: string;
+  desc: string;
+  lessons: string;
+  href: string;
+};
+
+// Fallback showcase shown only when the live catalog is empty, so the landing
+// always looks complete (and matches the reference) before any course exists.
+const SHOWCASE: CourseShow[] = [
+  { roman: "I", cat: "Foundation", title: "Stoicism: The Foundation", desc: "Learn timeless principles for discipline, clarity, and self-mastery.", lessons: "8 Lessons", href: "/courses" },
+  { roman: "II", cat: "Mind", title: "Mastering Your Mind", desc: "Train your thoughts, build focus, and strengthen emotional control.", lessons: "10 Lessons", href: "/courses" },
+  { roman: "III", cat: "Leadership", title: "The Koumian Leader", desc: "Lead with ownership, courage, communication, and accountability.", lessons: "12 Lessons", href: "/courses" },
+  { roman: "IV", cat: "Legacy", title: "Build What Lasts", desc: "Create impact, protect the culture, and leave a legacy that empowers generations.", lessons: "10 Lessons", href: "/courses" },
+  { roman: "V", cat: "Systems", title: "Systems & Excellence", desc: "Learn the standards, processes, and execution habits that help Koumizen operate with consistency and excellence.", lessons: "9 Lessons", href: "/courses" },
+  { roman: "VI", cat: "Service", title: "Customer Sincere Care", desc: "Develop empathy, communication, and customer-first thinking to create meaningful customer experiences.", lessons: "7 Lessons", href: "/courses" },
 ];
 
 const PILLARS = [
@@ -64,9 +75,12 @@ const CSS = `
 @media (max-width:919px){.k-desktop-nav{display:none !important;}.k-mobile-burger{display:flex !important;}}
 `;
 
-export function KoumianLanding() {
+export function KoumianLanding({ courses }: { courses?: CourseShow[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // Use the live catalog when it has courses; otherwise the showcase so the
+  // landing always looks complete and matches the catalog once populated.
+  const courseList = courses && courses.length > 0 ? courses : SHOWCASE;
 
   useEffect(() => {
     const onScroll = () => setScrolled((window.scrollY || 0) > 24);
@@ -337,10 +351,10 @@ export function KoumianLanding() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(min(100%,320px),1fr))", gap: "22px" }}>
-            {COURSES.map((c) => (
+            {courseList.map((c, i) => (
               <Link
-                key={c.roman}
-                href="/courses"
+                key={i}
+                href={c.href}
                 className="k-card"
                 style={{ display: "flex", flexDirection: "column", textDecoration: "none", borderRadius: "16px", overflow: "hidden", background: "linear-gradient(165deg,#161028,#100C1E)", border: "1px solid rgba(155,120,255,.14)" }}
               >
