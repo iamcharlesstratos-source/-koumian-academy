@@ -63,6 +63,11 @@ export default async function LessonPage({
     where: { slug: params.slug },
     include: {
       lessons: {
+        // Learners only see published lessons, so progress %, the
+        // certificate CTA, and the completion celebration must count
+        // published lessons only (matching the dashboard, course page, and
+        // certificate gate). Admins still see unpublished lessons here.
+        where: session.user.role === "admin" ? undefined : { published: true },
         orderBy: { order: "asc" },
         select: {
           id: true,

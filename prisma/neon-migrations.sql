@@ -11,6 +11,7 @@
 -- ─────────────────────────────────────────────────────────────────────────
 
 -- 0) Course cover image + intro/trailer video  ← fixes "can't save course"
+ALTER TABLE "Course" ADD COLUMN IF NOT EXISTS "published"     BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE "Course" ADD COLUMN IF NOT EXISTS "coverImageUrl" TEXT;
 ALTER TABLE "Course" ADD COLUMN IF NOT EXISTS "trailerUrl"    TEXT;
 ALTER TABLE "Course" ADD COLUMN IF NOT EXISTS "trailerType"   TEXT;

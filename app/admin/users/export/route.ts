@@ -6,7 +6,11 @@ export const dynamic = "force-dynamic";
 // CSV-escape a single field (wrap in quotes if it contains a comma, quote, or
 // newline; double any inner quotes).
 function esc(value: unknown): string {
-  const s = String(value ?? "");
+  let s = String(value ?? "");
+  // Neutralize spreadsheet formula / DDE injection: if a field starts with a
+  // formula trigger, prefix a single quote so Excel/Sheets treat it as literal
+  // text (name/email are user-controlled). Must run BEFORE the quoting check.
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

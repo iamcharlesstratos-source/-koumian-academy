@@ -43,7 +43,11 @@ export default async function ProfilePage() {
         include: {
           course: {
             include: {
-              lessons: { orderBy: { order: "asc" }, select: { id: true } },
+              lessons: {
+                where: { published: true },
+                orderBy: { order: "asc" },
+                select: { id: true },
+              },
             },
           },
         },

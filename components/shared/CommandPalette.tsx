@@ -96,7 +96,9 @@ export function CommandPalette({ role }: { role: string }) {
       } catch {
         /* aborted or failed — ignore */
       } finally {
-        setLoading(false);
+        // Only the current (non-aborted) request clears the spinner — a
+        // superseded request must not flip loading off while a newer one runs.
+        if (!controller.signal.aborted) setLoading(false);
       }
     }, 200);
     return () => {

@@ -45,9 +45,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (dbUser) {
             token.role = dbUser.role;
             token.status = dbUser.status;
+          } else {
+            // The user no longer exists (a successful query that returned no
+            // row, e.g. the account was deleted). Invalidate the session so
+            // middleware and the access gates treat them as logged out —
+            // otherwise a deleted user (even an admin) keeps a working cookie
+            // until the JWT naturally expires.
+            return null;
           }
         } catch {
-          // If the lookup fails, keep the existing token values.
+          // A transient DB error (not a missing user) — keep the existing
+          // token values so a hiccup doesn't sign everyone out.
         }
       }
       return token;

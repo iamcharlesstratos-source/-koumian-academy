@@ -142,15 +142,16 @@ export function PostCard({ post }: { post: PostCardData }) {
     startTransition(async () => {
       const result = await createComment(post.id, text);
       if (result.ok) {
-        // Optimistic add (server revalidate will reconcile on next load)
+        // Use the real persisted row (real id + author) so the comment is
+        // immediately deletable and shows the correct name/avatar.
         setComments((c) => [
           ...c,
           {
-            id: `temp-${Date.now()}`,
-            body: text,
-            createdAt: new Date().toISOString(),
-            authorName: "You",
-            authorImage: null,
+            id: result.comment.id,
+            body: result.comment.body,
+            createdAt: result.comment.createdAt,
+            authorName: result.comment.authorName,
+            authorImage: result.comment.authorImage,
             canDelete: true,
           },
         ]);

@@ -57,10 +57,11 @@ function validateCourse(input: CourseInput) {
     throw new Error(`Video URL must be ${COURSE_URL_MAX} characters or fewer`);
   }
   if (input.coverImageUrl) {
-    // Uploaded covers are compressed client-side and stored as data URLs;
-    // allow those up to ~1.5MB. Plain URLs keep the tighter limit.
+    // Uploaded covers are compressed client-side and stored as data URLs.
+    // Allow up to ~2.5MB (still under the 3MB server-action body limit) so a
+    // detailed photo isn't falsely rejected. Plain URLs keep the tight limit.
     const isDataImage = /^data:image\//i.test(input.coverImageUrl);
-    const max = isDataImage ? 1_500_000 : COURSE_URL_MAX;
+    const max = isDataImage ? 2_500_000 : COURSE_URL_MAX;
     if (input.coverImageUrl.length > max) {
       throw new Error("Cover image is too large. Please use a smaller image.");
     }
@@ -72,7 +73,12 @@ function validateLesson(input: LessonInput) {
   if (input.title.length > LESSON_TITLE_MAX) {
     throw new Error(`Lesson title must be ${LESSON_TITLE_MAX} characters or fewer`);
   }
-  if (input.body && input.body.length > LESSON_BODY_MAX) {
+  // The editor synthesizes `body` by concatenating every section, so a
+  // multi-section lesson can legitimately exceed LESSON_BODY_MAX even though
+  // each section is within its own (50k) limit. Only enforce the legacy body
+  // cap on the legacy plain-markdown path (no structured sections). The public
+  // page renders from `sections`, not `body`, when sections exist.
+  if (!input.sections?.length && input.body && input.body.length > LESSON_BODY_MAX) {
     throw new Error(`Lesson body must be ${LESSON_BODY_MAX} characters or fewer`);
   }
   if (input.proTip && input.proTip.length > LESSON_PROTIP_MAX) {
@@ -144,7 +150,9 @@ function isMissingColumnError(e: unknown): boolean {
   return (
     code === "P2022" ||
     /column .* does not exist/i.test(msg) ||
-    /(coverImageUrl|trailerUrl|trailerType)/.test(msg)
+    /(coverImageUrl|trailerUrl|trailerType|sections|takeaways|proTip|videoType|videoDuration|assignment(Enabled|Title|Description|FileTypes))/.test(
+      msg
+    )
   );
 }
 
@@ -280,14 +288,44 @@ export async function createLesson(courseId: string, input: LessonInput) {
   });
   const nextOrder = (last?.order ?? 0) + 1;
 
-  const created = await prisma.lesson.create({
-    data: {
-      courseId,
-      order: nextOrder,
-      ...packLessonData(input),
-    },
-    select: { id: true, courseId: true, course: { select: { slug: true } } },
-  });
+  const data = { courseId, order: nextOrder, ...packLessonData(input) };
+  const sel = {
+    id: true,
+    courseId: true,
+    course: { select: { slug: true } },
+  } as const;
+  let created;
+  try {
+    created = await prisma.lesson.create({ data, select: sel });
+  } catch (e) {
+    if (!isMissingColumnError(e)) throw e;
+    // Rich-editor columns not migrated yet — save the core lesson so the
+    // admin isn't blocked (run prisma/neon-migrations.sql to enable them).
+    const {
+      sections,
+      takeaways,
+      proTip,
+      videoType,
+      videoDuration,
+      assignmentEnabled,
+      assignmentTitle,
+      assignmentDescription,
+      assignmentFileTypes,
+      published,
+      ...base
+    } = data;
+    void sections;
+    void takeaways;
+    void proTip;
+    void videoType;
+    void videoDuration;
+    void assignmentEnabled;
+    void assignmentTitle;
+    void assignmentDescription;
+    void assignmentFileTypes;
+    void published;
+    created = await prisma.lesson.create({ data: base, select: sel });
+  }
 
   revalidatePath(`/admin/courses/${courseId}`);
   revalidatePath(`/courses/${created.course.slug}`);
@@ -298,11 +336,42 @@ export async function updateLesson(lessonId: string, input: LessonInput) {
   await requireAdmin();
   validateLesson(input);
 
-  const lesson = await prisma.lesson.update({
-    where: { id: lessonId },
-    data: packLessonData(input),
-    select: { courseId: true, course: { select: { slug: true } } },
-  });
+  const data = packLessonData(input);
+  const sel = { courseId: true, course: { select: { slug: true } } } as const;
+  let lesson;
+  try {
+    lesson = await prisma.lesson.update({ where: { id: lessonId }, data, select: sel });
+  } catch (e) {
+    if (!isMissingColumnError(e)) throw e;
+    const {
+      sections,
+      takeaways,
+      proTip,
+      videoType,
+      videoDuration,
+      assignmentEnabled,
+      assignmentTitle,
+      assignmentDescription,
+      assignmentFileTypes,
+      published,
+      ...base
+    } = data;
+    void sections;
+    void takeaways;
+    void proTip;
+    void videoType;
+    void videoDuration;
+    void assignmentEnabled;
+    void assignmentTitle;
+    void assignmentDescription;
+    void assignmentFileTypes;
+    void published;
+    lesson = await prisma.lesson.update({
+      where: { id: lessonId },
+      data: base,
+      select: sel,
+    });
+  }
 
   revalidatePath(`/admin/courses/${lesson.courseId}`);
   revalidatePath(`/courses/${lesson.course.slug}`);

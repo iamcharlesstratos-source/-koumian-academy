@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 export async function requireAdmin() {
   const session = await auth();
   if (!session?.user) redirect("/login");
-  if (session.user.role !== "admin") redirect("/pending");
+  // Non-admins go to their neutral home (/dashboard), not /pending — an
+  // approved student isn't "pending", and /pending shows misleading
+  // course-locked copy. /pending stays for genuinely unapproved users.
+  if (session.user.role !== "admin") redirect("/dashboard");
   return session;
 }
 

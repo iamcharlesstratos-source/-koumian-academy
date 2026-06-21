@@ -118,6 +118,18 @@ function parseJson<T>(s: string | null, fallback: T): T {
   }
 }
 
+// Run a lesson server action, surfacing any failure as a toast instead of an
+// unhandled rejection. These mutations don't redirect, so there's no
+// NEXT_REDIRECT to filter (unlike the course create/delete actions).
+async function runAction(fn: () => Promise<unknown>, fallback: string) {
+  try {
+    return await fn();
+  } catch (e) {
+    toast.error(e instanceof Error ? e.message : fallback);
+    return undefined;
+  }
+}
+
 function toEditorLesson(l: RawLesson): EditorLesson {
   return {
     id: l.id,
@@ -327,11 +339,15 @@ function CurriculumSidebar({
 
   const handleAdd = () => {
     startAdd(async () => {
-      const newId = await createLesson(courseId, {
-        title: `Lesson ${lessons.length + 1}`,
-        body: "",
-        published: true,
-      });
+      const newId = await runAction(
+        () =>
+          createLesson(courseId, {
+            title: `Lesson ${lessons.length + 1}`,
+            body: "",
+            published: true,
+          }),
+        "Failed to add lesson"
+      );
       if (typeof newId === "string") {
         onSelect(newId);
         toast.success("Lesson added.");
@@ -350,7 +366,14 @@ function CurriculumSidebar({
         </div>
 
         <button
-          onClick={() => startPublishAll(() => publishAllLessons(courseId))}
+          onClick={() =>
+            startPublishAll(async () => {
+              await runAction(
+                () => publishAllLessons(courseId),
+                "Failed to publish lessons"
+              );
+            })
+          }
           disabled={publishAllPending || lessons.length === 0}
           className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-theme-strong bg-current/[0.04] px-3 py-2 text-xs text-fg transition-colors hover:bg-current/[0.07] disabled:opacity-40"
         >
@@ -451,7 +474,11 @@ function LessonSidebarItem({
       <div className="flex flex-shrink-0 items-center opacity-0 transition-opacity group-hover:opacity-100">
         <button
           disabled={pending || isFirst}
-          onClick={() => start(() => moveLessonUp(lesson.id))}
+          onClick={() =>
+            start(async () => {
+              await runAction(() => moveLessonUp(lesson.id), "Failed to reorder lesson");
+            })
+          }
           className="rounded p-0.5 text-muted transition-colors hover:bg-current/[0.06] hover:text-fg disabled:opacity-25"
           title="Move up"
         >
@@ -459,7 +486,11 @@ function LessonSidebarItem({
         </button>
         <button
           disabled={pending || isLast}
-          onClick={() => start(() => moveLessonDown(lesson.id))}
+          onClick={() =>
+            start(async () => {
+              await runAction(() => moveLessonDown(lesson.id), "Failed to reorder lesson");
+            })
+          }
           className="rounded p-0.5 text-muted transition-colors hover:bg-current/[0.06] hover:text-fg disabled:opacity-25"
           title="Move down"
         >
@@ -469,7 +500,9 @@ function LessonSidebarItem({
           disabled={pending}
           onClick={() => {
             if (!confirm(`Delete "${lesson.title}"?`)) return;
-            start(() => deleteLesson(lesson.id));
+            start(async () => {
+              await runAction(() => deleteLesson(lesson.id), "Failed to delete lesson");
+            });
           }}
           className="rounded p-0.5 text-rose-400 transition-colors hover:bg-rose-500/15 disabled:opacity-25"
           title="Delete"

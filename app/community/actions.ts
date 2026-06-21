@@ -123,7 +123,10 @@ export async function setReaction(
             data: { type: t },
           });
         } catch {
-          /* column missing — leave the existing like in place */
+          // `type` column not migrated yet — we can't honor a switch to a
+          // different reaction. Report failure so the client rolls back the
+          // optimistic UI instead of showing an emoji that wasn't saved.
+          return { ok: false, error: "Reactions are updating — try again shortly." };
         }
       }
     } else {
@@ -132,8 +135,13 @@ export async function setReaction(
           data: { postId, userId: user.id, type: t },
         });
       } catch {
-        // column missing — create a plain like (DB default applies)
-        await prisma.postLike.create({ data: { postId, userId: user.id } });
+        // `type` column missing. A plain like row faithfully stores "like";
+        // for any other reaction, report failure so the UI rolls back.
+        if (t === "like") {
+          await prisma.postLike.create({ data: { postId, userId: user.id } });
+        } else {
+          return { ok: false, error: "Reactions are updating — try again shortly." };
+        }
       }
     }
   } catch {
@@ -152,10 +160,23 @@ export async function toggleLike(postId: string): Promise<ActionResult> {
 
 // ─── Comments ──────────────────────────────────────────────────────────
 
+type CommentResult =
+  | {
+      ok: true;
+      comment: {
+        id: string;
+        body: string;
+        createdAt: string;
+        authorName: string | null;
+        authorImage: string | null;
+      };
+    }
+  | { ok: false; error: string };
+
 export async function createComment(
   postId: string,
   body: string
-): Promise<ActionResult> {
+): Promise<CommentResult> {
   const user = await requireApproved();
   if (!user) return { ok: false, error: "You must be an approved member." };
 
@@ -170,8 +191,9 @@ export async function createComment(
   });
   if (!post) return { ok: false, error: "Post not found." };
 
-  await prisma.comment.create({
+  const created = await prisma.comment.create({
     data: { postId, authorId: user.id, body: text },
+    include: { author: { select: { name: true, image: true } } },
   });
 
   // Notify the post's author (not yourself).
@@ -186,7 +208,16 @@ export async function createComment(
 
   revalidatePath("/community");
   revalidatePath("/community/wins");
-  return { ok: true };
+  return {
+    ok: true,
+    comment: {
+      id: created.id,
+      body: created.body,
+      createdAt: created.createdAt.toISOString(),
+      authorName: created.author.name,
+      authorImage: created.author.image,
+    },
+  };
 }
 
 export async function deleteComment(commentId: string): Promise<ActionResult> {
