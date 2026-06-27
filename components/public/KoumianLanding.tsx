@@ -477,6 +477,12 @@ export function KoumianLanding({ courses }: { courses?: CourseShow[] }) {
           </div>
           <div style={{ marginTop: "36px", fontSize: "11px", letterSpacing: ".04em", color: "#6B6680", textAlign: "center" }}>
             © 2026 Koumizen, Inc. · Koumian Academy — Internal Learning Platform
+            <div style={{ marginTop: "6px", color: "#8A84A0" }}>
+              Powered by{" "}
+              <span style={{ color: "#B6A7E0", fontWeight: 500 }}>
+                GIWU Systems, Inc.
+              </span>
+            </div>
           </div>
         </div>
       </footer>
