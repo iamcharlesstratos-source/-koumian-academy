@@ -58,9 +58,7 @@ export function StatCard({
     <div className="surface rounded-2xl border border-theme p-6 backdrop-blur-sm">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
-            {label}
-          </p>
+          <p className="text-[13px] font-medium text-muted">{label}</p>
           <p className="mt-3 text-3xl font-semibold tracking-tight text-fg">
             {value}
           </p>
