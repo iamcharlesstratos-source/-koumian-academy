@@ -279,8 +279,9 @@ export default async function LessonPage({
               Back to course
             </Link>
 
-            {/* Video / placeholder */}
-            <div className="surface relative overflow-hidden rounded-2xl border border-theme">
+            {/* Video — only shown when a video is linked for this lesson */}
+            {lesson.videoUrl && (
+              <div className="surface relative overflow-hidden rounded-2xl border border-theme">
               {video ? (
                 <div className="relative aspect-video bg-black">
                   {video.kind === "iframe" ? (
@@ -326,7 +327,8 @@ export default async function LessonPage({
                   </span>
                 </div>
               )}
-            </div>
+              </div>
+            )}
 
             {!video && lesson.videoUrl && (
               <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-2.5 text-xs text-amber-700 dark:text-amber-200">
