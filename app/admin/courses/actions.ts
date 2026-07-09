@@ -136,6 +136,9 @@ function validateLesson(input: LessonInput) {
       }
     }
   }
+  if (input.pdfUrl && input.pdfUrl.length > COURSE_URL_MAX) {
+    throw new Error(`Document URL must be ${COURSE_URL_MAX} characters or fewer`);
+  }
 }
 
 async function uniqueSlug(base: string, ignoreId?: string): Promise<string> {
@@ -163,7 +166,7 @@ function isMissingColumnError(e: unknown): boolean {
   return (
     code === "P2022" ||
     /column .* does not exist/i.test(msg) ||
-    /(coverImageUrl|trailerUrl|trailerType|sections|takeaways|proTip|videoType|videoDuration|resources|assignment(Enabled|Title|Description|FileTypes))/.test(
+    /(coverImageUrl|trailerUrl|trailerType|sections|takeaways|proTip|videoType|videoDuration|resources|pdfUrl|assignment(Enabled|Title|Description|FileTypes))/.test(
       msg
     )
   );
@@ -270,6 +273,7 @@ export type LessonInput = {
   assignmentDescription?: string | null;
   assignmentFileTypes?: string[];
   resources?: LessonResource[];
+  pdfUrl?: string | null;
 };
 
 function packLessonData(input: LessonInput) {
@@ -290,6 +294,7 @@ function packLessonData(input: LessonInput) {
       ? JSON.stringify(input.assignmentFileTypes)
       : null,
     resources: input.resources ? JSON.stringify(input.resources) : null,
+    pdfUrl: input.pdfUrl?.trim() || null,
   };
 }
 
@@ -328,10 +333,12 @@ export async function createLesson(courseId: string, input: LessonInput) {
       assignmentDescription,
       assignmentFileTypes,
       resources,
+      pdfUrl,
       published,
       ...base
     } = data;
     void resources;
+    void pdfUrl;
     void sections;
     void takeaways;
     void proTip;
@@ -372,10 +379,12 @@ export async function updateLesson(lessonId: string, input: LessonInput) {
       assignmentDescription,
       assignmentFileTypes,
       resources,
+      pdfUrl,
       published,
       ...base
     } = data;
     void resources;
+    void pdfUrl;
     void sections;
     void takeaways;
     void proTip;

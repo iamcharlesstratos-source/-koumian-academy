@@ -184,6 +184,7 @@ model Lesson {
   assignmentDescription String?
   assignmentFileTypes  String?  // JSON: string[] (e.g. ["images","videos","pdfs"])
   resources            String?  // JSON: [{ label, url }] downloadable lesson resources
+  pdfUrl               String?  // Readable/embedded document (PDF or Google Drive doc) URL
   published            Boolean  @default(true)
 
   course      Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)

@@ -23,7 +23,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { hasCourseAccess } from "@/lib/access";
 import { Nav } from "@/components/public/Nav";
-import { resolveVideo } from "@/lib/video";
+import { resolveVideo, resolvePdfUrl } from "@/lib/video";
 import { formatDuration } from "@/lib/utils";
 import { MarkCompleteButton } from "./MarkCompleteButton";
 import { cn } from "@/lib/utils";
@@ -124,6 +124,9 @@ export default async function LessonPage({
   const resources = parseJson<{ label: string; url: string }[]>(
     (lesson as { resources?: string | null }).resources ?? null,
     []
+  );
+  const pdfEmbed = resolvePdfUrl(
+    (lesson as { pdfUrl?: string | null }).pdfUrl
   );
 
   // Load completions for this user across this course's lessons
@@ -522,6 +525,38 @@ export default async function LessonPage({
                 </div>
               );
             })()}
+
+            {/* Readable document / PDF */}
+            {pdfEmbed && (
+              <section className="mt-12">
+                <div className="mb-4 flex items-center gap-2">
+                  <FileIcon className="h-5 w-5 text-purple-600 dark:text-purple-300" />
+                  <h3 className="text-lg font-semibold tracking-tight text-fg">
+                    Document
+                  </h3>
+                </div>
+                <div className="surface overflow-hidden rounded-2xl border border-theme p-2">
+                  <iframe
+                    src={pdfEmbed}
+                    title="Lesson document"
+                    className="w-full rounded-xl bg-white"
+                    style={{ height: "clamp(520px, 82vh, 1000px)" }}
+                    allow="autoplay"
+                  />
+                </div>
+                <p className="mt-2 text-center text-[11px] text-muted">
+                  Can&apos;t see the document?{" "}
+                  <a
+                    href={pdfEmbed}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-purple-600 underline underline-offset-2 dark:text-purple-300"
+                  >
+                    Open it in a new tab →
+                  </a>
+                </p>
+              </section>
+            )}
 
             {/* Resources & downloads */}
             {resources.length > 0 && (

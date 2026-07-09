@@ -39,7 +39,7 @@ import {
   type LessonResource,
 } from "@/app/admin/courses/actions";
 import { CourseForm } from "@/components/admin/CourseForm";
-import { resolveVideo } from "@/lib/video";
+import { resolveVideo, resolvePdfUrl } from "@/lib/video";
 
 // ─────────── Types ───────────
 
@@ -75,6 +75,7 @@ type RawLesson = {
   assignmentDescription: string | null;
   assignmentFileTypes: string | null;
   resources: string | null;
+  pdfUrl: string | null;
 };
 
 type EditorLesson = {
@@ -94,6 +95,7 @@ type EditorLesson = {
   assignmentDescription: string;
   assignmentFileTypes: string[];
   resources: LessonResource[];
+  pdfUrl: string;
 };
 
 const VIDEO_TYPES = [
@@ -155,6 +157,7 @@ function toEditorLesson(l: RawLesson): EditorLesson {
       "pdfs",
     ]),
     resources: parseJson<LessonResource[]>(l.resources, []),
+    pdfUrl: l.pdfUrl ?? "",
   };
 }
 
@@ -562,6 +565,7 @@ function LessonFormPanel({
   const [resources, setResources] = useState<LessonResource[]>(
     lesson.resources
   );
+  const [pdfUrl, setPdfUrl] = useState(lesson.pdfUrl);
 
   const [pending, startSave] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -593,6 +597,7 @@ function LessonFormPanel({
           assignmentDescription,
           assignmentFileTypes,
           resources: resources.filter((r) => r.url.trim() || r.label.trim()),
+          pdfUrl,
         });
         setSavedAt(new Date().toLocaleTimeString());
         toast.success("Lesson saved.");
@@ -734,6 +739,27 @@ function LessonFormPanel({
             TikTok • Direct .mp4 URL. Just paste — the provider is auto-detected.
           </p>
           <VideoPreview url={videoUrl} hint={videoType} />
+        </div>
+      </Panel>
+
+      {/* Document / PDF */}
+      <Panel icon={FileIcon} title="Document / PDF">
+        <div className="space-y-4">
+          <div>
+            <label className="label">Document URL (PDF or Google Drive)</label>
+            <input
+              className="input"
+              value={pdfUrl}
+              onChange={(e) => setPdfUrl(e.target.value)}
+              placeholder="https://…/file.pdf   or   https://drive.google.com/file/d/…"
+            />
+          </div>
+          <p className="text-[11px] text-muted">
+            Paste a link to a PDF (a direct <code>.pdf</code> URL) or a Google
+            Drive document. Learners will see it as a readable, embedded reader
+            inside the lesson — not just a download.
+          </p>
+          <PdfPreview url={pdfUrl} />
         </div>
       </Panel>
 
@@ -1159,6 +1185,35 @@ function VideoPreview({
           Open original →
         </a>
       </div>
+    </div>
+  );
+}
+
+function PdfPreview({ url }: { url: string }) {
+  const src = resolvePdfUrl(url);
+  if (!src) {
+    return (
+      <div className="rounded-xl border border-dashed border-theme-strong bg-current/[0.02] p-3">
+        <div className="flex h-40 w-full items-center justify-center rounded-lg bg-gradient-to-br from-purple-deep/20 to-ink-100/60">
+          <div className="text-center">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-theme-strong bg-current/[0.04]">
+              <FileIcon className="h-5 w-5 text-muted" strokeWidth={1.2} />
+            </span>
+            <p className="mt-3 text-[11px] text-muted">
+              Paste a PDF / document URL to preview.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="overflow-hidden rounded-xl border border-theme-strong bg-current/[0.03] p-2">
+      <iframe
+        src={src}
+        title="Document preview"
+        className="h-[520px] w-full rounded-lg bg-white"
+      />
     </div>
   );
 }

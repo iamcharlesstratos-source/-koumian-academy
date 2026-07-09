@@ -94,6 +94,7 @@ export default async function EditCoursePage({
           assignmentFileTypes: l.assignmentFileTypes,
           resources:
             (l as { resources?: string | null }).resources ?? null,
+          pdfUrl: (l as { pdfUrl?: string | null }).pdfUrl ?? null,
         }))}
       />
     </>

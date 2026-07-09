@@ -193,3 +193,41 @@ export function toEmbedUrl(url: string): string | null {
 export function detectProviderLabel(url: string): string | null {
   return resolveVideo(url)?.label ?? null;
 }
+
+/**
+ * Resolve a document/PDF URL into something embeddable inline (an <iframe>).
+ * - Google Drive / Docs → the /preview inline reader
+ * - Dropbox → direct raw
+ * - Any other URL (a direct .pdf, hosted file, etc.) → used as-is; browsers
+ *   render PDFs inside an iframe natively.
+ * Returns null for empty/invalid input.
+ */
+export function resolvePdfUrl(url: string | null | undefined): string | null {
+  const trimmed = url?.trim();
+  if (!trimmed) return null;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  const host = parsed.hostname.replace(/^www\./, "");
+
+  if (host === "drive.google.com" || host === "docs.google.com") {
+    const m = parsed.pathname.match(/\/file\/d\/([^/]+)/);
+    const id = m?.[1] ?? parsed.searchParams.get("id");
+    if (id) return `https://drive.google.com/file/d/${id}/preview`;
+    // docs.google.com/document|presentation|spreadsheets/.../edit → /preview
+    if (/\/(document|presentation|spreadsheets)\//.test(parsed.pathname)) {
+      return trimmed.replace(/\/(edit|view)(\?.*)?$/, "/preview");
+    }
+    return trimmed;
+  }
+
+  if (host === "dropbox.com" || host.endsWith(".dropbox.com")) {
+    return trimmed.replace(/([?&])dl=0/, "$1raw=1");
+  }
+
+  return trimmed;
+}
