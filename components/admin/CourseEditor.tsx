@@ -1011,8 +1011,12 @@ function LessonFormPanel({
       </Panel>
 
       {/* Footer save bar (mirror at the bottom) */}
-      <div className="sticky bottom-4 z-20 flex items-center justify-end gap-3 rounded-2xl border border-theme-strong bg-white px-5 py-3 shadow-lg dark:bg-[#15102b]">
-        <button onClick={save} disabled={pending} className="btn-primary text-xs">
+      <div className="pointer-events-none sticky bottom-4 z-20 flex items-center justify-end">
+        <button
+          onClick={save}
+          disabled={pending}
+          className="btn-primary pointer-events-auto text-xs shadow-lg shadow-purple/30"
+        >
           {pending ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
