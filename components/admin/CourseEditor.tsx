@@ -363,7 +363,7 @@ function CurriculumSidebar({
   };
 
   return (
-    <aside className="lg:sticky lg:top-6 lg:self-start">
+    <aside className="lg:sticky lg:top-24 lg:self-start">
       <div className="rounded-2xl border border-theme surface p-5 backdrop-blur-sm">
         <div className="mb-1 text-xs font-medium uppercase tracking-[0.25em] text-purple-600 dark:text-purple-300">
           Curriculum
@@ -1011,7 +1011,7 @@ function LessonFormPanel({
       </Panel>
 
       {/* Footer save bar (mirror at the bottom) */}
-      <div className="sticky bottom-4 z-10 flex items-center justify-end gap-3 rounded-2xl border border-theme surface px-5 py-3 backdrop-blur-xl">
+      <div className="sticky bottom-4 z-20 flex items-center justify-end gap-3 rounded-2xl border border-theme-strong bg-white px-5 py-3 shadow-lg dark:bg-[#15102b]">
         <button onClick={save} disabled={pending} className="btn-primary text-xs">
           {pending ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -22,15 +22,15 @@ export default async function AdminLayout({
         notifItems={items}
       />
       <main className="app-main">
-        <div className="pointer-events-none sticky top-0 z-30 hidden items-center justify-between gap-4 px-10 pt-4 lg:flex">
+        <div className="sticky top-0 z-30 hidden items-center justify-between gap-4 border-b border-theme nav-bg px-10 py-4 backdrop-blur-xl lg:flex">
           <GlobalSearch
-            className="pointer-events-auto w-full max-w-sm"
+            className="w-full max-w-sm"
             placeholder="Search courses & members…"
           />
           <NotificationBell
             items={items}
             unreadCount={unreadCount}
-            className="pointer-events-auto relative"
+            className="relative"
           />
         </div>
         <div className="mx-auto max-w-6xl px-6 pb-24 pt-8 lg:px-10 lg:pb-10 lg:pt-2">
